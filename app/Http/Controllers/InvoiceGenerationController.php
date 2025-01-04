@@ -81,7 +81,7 @@ class InvoiceGenerationController extends Controller
 
         // Generate random product data
         $productName = $faker->word;
-        $productPrice = $faker->randomFloat(2, 10, 500); // Random price between $10 and $500
+        $productPrice = $amount;
         $quantity = rand(1, 5);
 
         // Calculate tax (assuming 10% tax)
@@ -100,6 +100,7 @@ class InvoiceGenerationController extends Controller
             'quantity' => $quantity,
             'amount' => $amount,
             'tax' => $taxAmount,
+            'tax_rate' => $taxRate,
             'total' => $totalAmount,
             'invoice_date' => now()->toDateString(),
         ];
