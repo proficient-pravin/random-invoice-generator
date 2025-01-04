@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
-use Maatwebsite\Excel\Facades\Excel;
+// use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\InvoicesExport;
 use Faker\Factory as Faker;
 use Illuminate\Http\Request;
@@ -65,9 +65,6 @@ class InvoiceGenerationController extends Controller
 
             // Close the ZIP file
             $zip->close();
-
-            // Export invoice data to Excel
-            Excel::store(new InvoicesExport($invoicesData), 'invoices.xlsx');
 
             return response()->download(public_path($zipFileName));
         }
