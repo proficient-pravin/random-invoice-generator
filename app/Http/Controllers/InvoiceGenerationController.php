@@ -64,9 +64,8 @@ class InvoiceGenerationController extends Controller
 
         // Calculate the total amount of generated invoices
         $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
-
+        dd($invoices);
         return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
-        // dd($invoices, $totalGeneratedAmount);
         
         // $invoice = collect($invoices[0]);
         // dd($invoice);
@@ -116,9 +115,9 @@ class InvoiceGenerationController extends Controller
                 'name' => $product['ItemName'],
                 'description' => $product['PurchasesDescription'],
                 'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'tax' => $tax,
-                'amount' => $amount,
+                'unit_price' => number_format($unitPrice, 2, '.', ''),
+                'tax' => number_format($tax, 2, '.', ''),
+                'amount' => number_format($amount, 2, '.', ''),
             ];
     
             $remainingAmount = max(0, $remainingAmount - $amount);
@@ -188,9 +187,9 @@ class InvoiceGenerationController extends Controller
                 'invoice_number' => $invoiceSequenceStartFrom + $i,
                 'invoice_date' => $this->getRandomDate(),
                 'invoice_items' => $invoiceItems,
-                'subtotal' => round($subtotal, 2),
-                'total_tax' => round($totalTax, 2),
-                'total' => round($subtotal + $totalTax, 2),
+                'subtotal' => number_format($subtotal, 2, '.', ''),
+                'total_tax' => number_format($totalTax, 2, '.', ''),
+                'total' => number_format(($subtotal + $totalTax), 2, '.', ''),
             ];
 
             // Update remaining amount
