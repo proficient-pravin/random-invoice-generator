@@ -18,6 +18,7 @@ class InvoiceGenerationController extends Controller
 
     public function generateInvoices(Request $request)
     {
+        set_time_limit(0);
         $totalInvoiceAmount = $request->total_amount;
         $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
         $invoiceSequenceStartFrom = $request->start_invoice_number;
