@@ -169,7 +169,8 @@ class InvoiceGenerationController extends Controller
             // Random customer and product for each invoice
             $customer = $this->getRandomCustomer();
             $product = $this->getRandomProduct();
-            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
+            // $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
+            $taxPercentage = request()->tax_percentage;
 
             $invoiceItems = $this->generateInvoiceItems(
                 $currentInvoiceAmount,
