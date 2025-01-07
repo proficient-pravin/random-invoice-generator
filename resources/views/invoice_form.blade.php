@@ -36,10 +36,10 @@
                 </div>
 
                 <!-- Number of Invoices -->
-                <div class="form-group col-md-6">
+                {{-- <div class="form-group col-md-6">
                     <label for="num_invoices">Number of Invoices</label>
                     <input type="number" class="form-control" name="num_invoices" required>
-                </div>
+                </div> --}}
                 <div class="form-group col-md-6">
                     <!-- Total Amount -->
                     <label for="tax_percentage">Tax Percentage</label>
