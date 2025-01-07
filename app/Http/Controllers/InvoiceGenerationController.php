@@ -118,41 +118,52 @@ class InvoiceGenerationController extends Controller
 
     private function generateInvoiceData(
         float $totalInvoiceAmount,
-        int $totalNumberOfInvoices,
+        int $totalNumberOfInvoiceToBeGenerated,
         int $invoiceSequenceStartFrom
     ): array {
-        $averageAmount = $totalInvoiceAmount / $totalNumberOfInvoices;
-        $remainingTotal = $totalInvoiceAmount;
         $invoices = [];
-    
-        for ($i = 0; $i < $totalNumberOfInvoices; $i++) {
-            $isLastInvoice = ($i == $totalNumberOfInvoices - 1);
-            $invoiceAmount = $this->generateRandomAmount(
-                $averageAmount,
-                $remainingTotal,
-                $totalNumberOfInvoices - $i
-            );
-    
+        $remainingAmount = $totalInvoiceAmount;
+        $averageInvoiceAmount = $totalInvoiceAmount / $totalNumberOfInvoiceToBeGenerated;
+
+        // Generate invoices with small variations to make the total amount close to the requested amount
+        for ($i = 0; $i < $totalNumberOfInvoiceToBeGenerated; $i++) {
+            $isLastInvoice = ($i == $totalNumberOfInvoiceToBeGenerated - 1);
+
+            // Control the invoice amount deviation for all invoices except the last one
+            $currentInvoiceAmount = ($isLastInvoice)
+            ? $remainingAmount
+            : $this->generateRandomAmount($averageInvoiceAmount, $remainingAmount, $totalNumberOfInvoiceToBeGenerated - $i);
+
+            // Random customer and product for each invoice
+            $customer = $this->getRandomCustomer();
+            $product = $this->getRandomProduct();
+            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
+
             $invoiceItems = $this->generateInvoiceItems(
-                $invoiceAmount,
-                "Product $i",
-                "Description for product $i",
-                rand(100, 500), // Sample unit price
-                rand(5, 18) // Sample tax percentage
+                $currentInvoiceAmount,
+                $product['ItemName'],
+                $product['PurchasesDescription'],
+                floatval($product['SalesUnitPrice']),
+                floatval($taxPercentage)
             );
-    
-            $totalItemsAmount = array_sum(array_column($invoiceItems, 'amount'));
-    
+
+            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
+            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
+
             $invoices[] = [
+                 ...$customer,
                 'invoice_number' => $invoiceSequenceStartFrom + $i,
-                'date' => $this->getRandomDate(),
-                'items' => $invoiceItems,
-                'total' => $totalItemsAmount,
+                'invoice_date' => $this->getRandomDate(),
+                'invoice_items' => $invoiceItems,
+                'subtotal' => round($subtotal, 2),
+                'total_tax' => round($totalTax, 2),
+                'total' => round($subtotal + $totalTax, 2),
             ];
-    
-            $remainingTotal -= $invoiceAmount;
+
+            // Update remaining amount
+            $remainingAmount -= $currentInvoiceAmount;
         }
-    
+
         return $invoices;
     }
 
