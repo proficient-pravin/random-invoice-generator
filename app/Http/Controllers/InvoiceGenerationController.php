@@ -19,6 +19,8 @@ class InvoiceGenerationController extends Controller
     public function generateInvoices(Request $request)
     {
         set_time_limit(0);
+        ini_set('memory_limit', '-1'); // Unlimited memory
+
         $totalInvoiceAmount = $request->total_amount;
         $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
         $invoiceSequenceStartFrom = $request->start_invoice_number;
