@@ -117,6 +117,7 @@ class InvoiceGenerationController extends Controller
                 'quantity' => $quantity,
                 'unit_price' => number_format($unitPrice, 2, '.', ''),
                 'tax' => number_format($tax, 2, '.', ''),
+                'tax_percentage' => $taxPercentage,
                 'amount' => number_format($amount, 2, '.', ''),
             ];
     
