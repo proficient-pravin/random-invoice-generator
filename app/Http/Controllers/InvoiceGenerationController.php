@@ -64,7 +64,7 @@ class InvoiceGenerationController extends Controller
 
         // Calculate the total amount of generated invoices
         $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
-        dd($invoices);
+        // dd($invoices);
         return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
         
         // $invoice = collect($invoices[0]);
