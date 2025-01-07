@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use ZipArchive;
+use Illuminate\Support\Facades\File;
+
 
 class InvoiceGenerationController extends Controller
 {
@@ -30,6 +32,13 @@ class InvoiceGenerationController extends Controller
             $totalNumberOfInvoiceToBeGenerated,
             $invoiceSequenceStartFrom
         );
+
+         // Delete existing ZIP files in the directory
+        $zipFiles = public_path('*.zip');
+        $existingZipFiles = File::glob($zipFiles);
+        foreach ($existingZipFiles as $file) {
+            File::delete($file); // Delete each file
+        }
 
         // Calculate the total amount of generated invoices
         $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
