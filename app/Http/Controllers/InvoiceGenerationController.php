@@ -28,7 +28,7 @@ class InvoiceGenerationController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date',
             'start_invoice_number' => 'required|integer',
-            'num_invoices' => 'required|integer|max:150',
+            'num_invoices' => 'integer|max:150',
             'total_amount' => 'required',
         ]);
 
@@ -36,11 +36,25 @@ class InvoiceGenerationController extends Controller
         $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
         $invoiceSequenceStartFrom = $request->start_invoice_number;
 
-        $invoices = $this->generateInvoiceData(
-            floatval($totalInvoiceAmount),
-            $totalNumberOfInvoiceToBeGenerated,
-            $invoiceSequenceStartFrom
-        );
+        // $invoices = $this->generateInvoiceData(
+        //     floatval($totalInvoiceAmount),
+        //     $totalNumberOfInvoiceToBeGenerated,
+        //     $invoiceSequenceStartFrom
+        // );
+
+        if(empty(request()->num_invoices)){
+            $invoices = $this->generateInvoiceDataV2(
+                floatval($totalInvoiceAmount),
+                $totalNumberOfInvoiceToBeGenerated,
+                $invoiceSequenceStartFrom
+            );
+        }else{
+            $invoices = $this->generateInvoiceData(
+                floatval($totalInvoiceAmount),
+                $totalNumberOfInvoiceToBeGenerated,
+                $invoiceSequenceStartFrom
+            );
+        }
 
          // Delete existing ZIP files in the directory
         $zipFiles = public_path('*.zip');
@@ -185,6 +199,54 @@ class InvoiceGenerationController extends Controller
             $remainingAmount -= $currentInvoiceAmount;
         }
 
+        return $invoices;
+    }
+
+    private function generateInvoiceDataV2(
+        float $totalInvoiceAmount,
+        int $invoiceSequenceStartFrom
+    ): array {
+        $invoices = [];
+        $remainingAmount = $totalInvoiceAmount;
+        $totalGeneratedAmount = 0; // Track the total generated amount
+    
+        while ($remainingAmount > 0) {
+            // Random customer and product for each invoice
+            $customer = $this->getRandomCustomer();
+            $product = $this->getRandomProduct();
+            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
+    
+            // Generate invoice items
+            $invoiceItems = $this->generateInvoiceItems(
+                $remainingAmount,
+                $product['ItemName'],
+                $product['PurchasesDescription'],
+                floatval($product['SalesUnitPrice']),
+                floatval($taxPercentage)
+            );
+    
+            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
+            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
+    
+            // Calculate total for the current invoice
+            $currentInvoiceAmount = round($subtotal + $totalTax, 2);
+    
+            // Update total generated amount and remaining amount
+            $totalGeneratedAmount += $currentInvoiceAmount;
+            $remainingAmount = max(0, $totalInvoiceAmount - $totalGeneratedAmount);
+    
+            // Add invoice to the list
+            $invoices[] = [
+                ...$customer,
+                'invoice_number' => $invoiceSequenceStartFrom++,
+                'invoice_date' => $this->getRandomDate(),
+                'invoice_items' => $invoiceItems,
+                'subtotal' => round($subtotal, 2),
+                'total_tax' => round($totalTax, 2),
+                'total' => round($currentInvoiceAmount, 2),
+            ];
+        }
+    
         return $invoices;
     }
 
