@@ -393,14 +393,14 @@ class InvoiceGenerationController extends Controller
             foreach ($invoices as $index => $invoice) {
                 // Generate PDF for the invoice
                 $pdf = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
-                $pdfPath = 'invoice_' . ($index + 1) . '/pdf_invoice_' . ($index + 1) . '.pdf';
+                $pdfPath = 'pdf_invoice_' . ($index + 1) . '.pdf';
 
                 // Add the PDF to the ZIP
                 $zip->addFromString($pdfPath, $pdf->output());
 
                 // Generate CSV for the invoice
                 $csvData = $this->generateInvoiceCsv($invoice);
-                $csvPath = 'invoice_' . ($index + 1) . '/csv_invoice_' . ($index + 1) . '.csv';
+                $csvPath = 'csv_invoice_' . ($index + 1) . '.csv';
                 // Add the CSV to the ZIP
                 $zip->addFromString($csvPath, $csvData);
             }
