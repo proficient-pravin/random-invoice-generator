@@ -23,6 +23,15 @@ class InvoiceGenerationController extends Controller
         set_time_limit(0);
         ini_set('memory_limit', '-1'); // Unlimited memory
 
+        // Validate user input
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'start_invoice_number' => 'required|integer',
+            'num_invoices' => 'required|integer|max:150',
+            'total_amount' => 'required',
+        ]);
+
         $totalInvoiceAmount = $request->total_amount;
         $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
         $invoiceSequenceStartFrom = $request->start_invoice_number;
