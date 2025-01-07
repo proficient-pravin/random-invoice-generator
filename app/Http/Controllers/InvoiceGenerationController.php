@@ -90,8 +90,7 @@ class InvoiceGenerationController extends Controller
         $items = [];
         $remainingAmount = $targetAmount;
         $usedProducts = [];
-        $totalQuantity = request()->total_amount  > 40000 ? 3 : 4;
-        $numberOfItems = rand(1, $totalQuantity);
+        $numberOfItems = rand(1, 2);
     
         for ($i = 0; $i < $numberOfItems; $i++) {
             $isLastItem = ($i == $numberOfItems - 1);
