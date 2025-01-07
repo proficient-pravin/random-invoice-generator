@@ -10,7 +10,7 @@
         <!-- Header -->
         <div style="display: block; margin-bottom: 20px;">
             <div style="float: right;">
-                <!-- <img src="{{ public_path('logo.jpeg') }}" style="max-height: 80px;" alt="Logo"> -->
+                <img src="{{ public_path('logo.jpeg') }}" style="max-height: 80px;" alt="Logo">
             </div>
             <div style="clear: both;"></div>
         </div>

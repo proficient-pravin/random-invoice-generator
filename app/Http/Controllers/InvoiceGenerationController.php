@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-
-use Barryvdh\DomPDF\Facade\Pdf as PDF;
 // use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\InvoicesExport;
-use Faker\Factory as Faker;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use ZipArchive;
 
@@ -18,32 +15,6 @@ class InvoiceGenerationController extends Controller
         // return $pdf->stream('invoice-' . time() . '.pdf');
         return view('invoice_form');
     }
-
-    // public function generateInvoices(Request $request){
-    //     $customer = $this->getRandomCustomer();
-    //     $product = $this->getRandomProduct();
-    //     $invoiceDate = $this->getRandomDate();
-    //     $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? ($request->tax_percentage ?? 10) : 0;
-    //     $productUnitPrice = $product['SalesUnitPrice'];
-    //     $productItemName = $product['ItemName'];
-    //     $productItemDescription = $product['PurchasesDescription'];
-    //     $customerName = $customer['full_name'];
-    //     $customerEmail = $customer['email'];
-    //     $totalInvoiceAmount = $request->total_amount;
-    //     $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
-    //     $invoiceSequenceStartFrom = $request->start_invoice_number;
-
-    //     $invoices = $this->generateInvoiceData(
-    //         $totalInvoiceAmount,
-    //         $totalNumberOfInvoiceToBeGenerated,
-    //         $invoiceSequenceStartFrom,
-    //         $product,
-    //         $taxPercentage,
-    //         $productItemName,
-    //         $productItemDescription,
-    //         $productUnitPrice
-    //     );
-    // }
 
     public function generateInvoices(Request $request)
     {
@@ -57,162 +28,22 @@ class InvoiceGenerationController extends Controller
             $invoiceSequenceStartFrom
         );
 
-
         // Calculate the total amount of generated invoices
         $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
 
-        $invoice = collect($invoices[0]);
-        // dd($invoice);
-        // Pass data to the Blade view for PDF generation
-        $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
-
-        return $pdf->stream('invoice-' . time() . '.pdf');
-
-        // Return the PDF to the browser
-        return $pdf->download('invoice-' . time() . '.pdf');
-        
         dd($invoices, $totalGeneratedAmount);
-    }
+        
+        // $invoice = collect($invoices[0]);
+        // dd($invoice);
+        // return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
 
+        // // Pass data to the Blade view for PDF generation
+        // $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
 
+        // return $pdf->stream('invoice-' . time() . '.pdf');
 
-    // public function generateInvoices(Request $request)
-    // {
-    //     // Validate user input
-    //     $validated = $request->validate([
-    //         'start_date' => 'required|date',
-    //         'end_date' => 'required|date',
-    //         'start_invoice_number' => 'required|integer',
-    //         'num_invoices' => 'required|integer',
-    //         'total_amount' => 'required|numeric',
-    //     ]);
-
-    //     $invoicesData = [];
-    //     $zip = new ZipArchive;
-    //     $zipFileName = 'invoices_' . time() . '.zip';
-
-    //     // Open the ZIP file for writing
-    //     if ($zip->open(public_path($zipFileName), ZipArchive::CREATE) === TRUE) {
-    //         $remainingAmount = $validated['total_amount'];
-
-    //         // Create an instance of Faker to generate random data
-    //         $faker = Faker::create();
-
-    //         for ($i = 0; $i < $validated['num_invoices']; $i++) {
-    //             // Generate random invoice data
-    //             $invoiceData = $this->generateRandomInvoiceData(
-    //                 $validated['start_invoice_number'] + $i,
-    //                 $remainingAmount / ($validated['num_invoices'] - $i), // Distribute amount evenly
-    //                 $validated['start_date'],
-    //                 $validated['end_date'],
-    //                 $faker
-    //             );
-
-    //             // Create the PDF
-    //             $pdf = PDF::loadView('invoice_template', ['invoice' => $invoiceData]);
-    //             $pdfPath = 'invoices/invoice_' . ($validated['start_invoice_number'] + $i) . '.pdf';
-
-    //             // Save the PDF to the ZIP
-    //             $zip->addFromString($pdfPath, $pdf->output());
-
-    //             // Collect invoice data for Excel export
-    //             $invoicesData[] = $invoiceData;
-
-    //             // Deduct the generated amount from the remaining amount
-    //             $remainingAmount -= $invoiceData['total'];
-    //         }
-
-    //         // Close the ZIP file
-    //         $zip->close();
-
-    //         return response()->download(public_path($zipFileName));
-    //     }
-
-    //     return response()->json(['error' => 'Failed to create ZIP file'], 500);
-    // }
-
-    // private function generateRandomInvoiceData($invoiceNumber, $amount, $startDate, $endDate, $faker)
-    // {
-    //     // Generate random customer (user) data
-    //     $customerName = $faker->name;
-    //     $customerEmail = $faker->email;
-    //     $customerPhone = $faker->phoneNumber;
-
-    //     // Generate random product data
-    //     $productName = $faker->word;
-    //     $productPrice = $amount;
-    //     $quantity = rand(1, 5);
-
-    //     // Calculate tax (assuming 10% tax)
-    //     $taxRate = 0.10;
-    //     $taxAmount = $amount * $taxRate;
-    //     $totalAmount = $amount + $taxAmount;
-
-    //     // Create invoice data array
-    //     return [
-    //         'invoice_number' => $invoiceNumber,
-    //         'customer_name' => $customerName,
-    //         'customer_email' => $customerEmail,
-    //         'customer_phone' => $customerPhone,
-    //         'product_name' => $productName,
-    //         'product_price' => $productPrice,
-    //         'quantity' => $quantity,
-    //         'amount' => $amount,
-    //         'tax' => $taxAmount,
-    //         'tax_rate' => $taxRate,
-    //         'total' => $totalAmount,
-    //         'invoice_date' => now()->toDateString(),
-    //     ];
-    // }
-    private function generateInvoiceData(
-        float $totalInvoiceAmount,
-        int $totalNumberOfInvoiceToBeGenerated,
-        int $invoiceSequenceStartFrom
-    ): array {
-        $invoices = [];
-        $remainingAmount = $totalInvoiceAmount;
-        $averageInvoiceAmount = $totalInvoiceAmount / $totalNumberOfInvoiceToBeGenerated;
-
-        // Generate invoices with small variations to make the total amount close to the requested amount
-        for ($i = 0; $i < $totalNumberOfInvoiceToBeGenerated; $i++) {
-            $isLastInvoice = ($i == $totalNumberOfInvoiceToBeGenerated - 1);
-
-            // Control the invoice amount deviation for all invoices except the last one
-            $currentInvoiceAmount = ($isLastInvoice)
-                ? $remainingAmount
-                : $this->generateRandomAmount($averageInvoiceAmount, $remainingAmount, $totalNumberOfInvoiceToBeGenerated - $i);
-
-            // Random customer and product for each invoice
-            $customer = $this->getRandomCustomer();
-            $product = $this->getRandomProduct();
-            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
-
-            $invoiceItems = $this->generateInvoiceItems(
-                $currentInvoiceAmount,
-                $product['ItemName'],
-                $product['PurchasesDescription'],
-                floatval($product['SalesUnitPrice']),
-                floatval($taxPercentage)
-            );
-
-            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
-            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
-
-            $invoices[] = [
-                ...$customer,
-                'invoice_number' => $invoiceSequenceStartFrom + $i,
-                'invoice_date' => $this->getRandomDate(),
-                'invoice_items' => $invoiceItems,
-                'subtotal' => round($subtotal, 2),
-                'total_tax' => round($totalTax, 2),
-                'total' => round($subtotal + $totalTax, 2),
-            ];
-
-            // Update remaining amount
-            $remainingAmount -= $currentInvoiceAmount;
-        }
-
-        return $invoices;
+        // // Return the PDF to the browser
+        // return $pdf->download('invoice-' . time() . '.pdf');
     }
 
     private function generateInvoiceItems(
@@ -226,44 +57,44 @@ class InvoiceGenerationController extends Controller
         $remainingAmount = $targetAmount;
         $usedProducts = []; // Track used product names
         $numberOfItems = rand(1, 4);
-    
+
         for ($i = 0; $i < $numberOfItems; $i++) {
             $isLastItem = ($i == $numberOfItems - 1);
             $maxItemAmount = $isLastItem ? $remainingAmount : ($remainingAmount * 0.8);
-    
+
             // Ensure a unique product with a valid unit price for each item
             do {
                 $product = $this->getRandomProduct();
             } while (
-                in_array($product['ItemName'], $usedProducts) || 
+                in_array($product['ItemName'], $usedProducts) ||
                 floatval($product['SalesUnitPrice']) <= 0
             );
-    
+
             $usedProducts[] = $product['ItemName']; // Add product to used list
-    
+
             // Use the product's unit price
             $unitPrice = floatval($product['SalesUnitPrice']);
-    
+
             // Randomly select a quantity between 1 and 4
             $quantity = $isLastItem
-                ? max(1, min(4, ceil($remainingAmount / $unitPrice))) // Ensure valid quantity for the last item
-                : rand(1, 4);
-    
+            ? max(1, min(4, ceil($remainingAmount / $unitPrice))) // Ensure valid quantity for the last item
+            : rand(1, 4);
+
             $amount = round($quantity * $unitPrice, 2);
             $tax = round($amount * ($taxPercentage / 100), 2);
-    
+
             $items[] = [
                 'name' => $product['ItemName'],
                 'description' => $product['PurchasesDescription'],
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
                 'tax' => $tax,
-                'amount' => $amount
+                'amount' => $amount,
             ];
-    
+
             $remainingAmount -= $amount;
         }
-    
+
         return $items;
     }
 
@@ -283,7 +114,7 @@ class InvoiceGenerationController extends Controller
         return round(rand($minAmount * 100, $maxAmount * 100) / 100, 2);
     }
 
-    function getRandomDate()
+    public function getRandomDate()
     {
         $startDate = strtotime(request()->start_date);
         $endDate = strtotime(request()->end_date);
@@ -299,7 +130,7 @@ class InvoiceGenerationController extends Controller
         return date('Y-m-d', $randomTimestamp);
     }
 
-    function getRandomCustomer(): ?array
+    public function getRandomCustomer(): ?array
     {
         $customers = $this->csvToArray('Contacts.csv');
 
@@ -307,7 +138,6 @@ class InvoiceGenerationController extends Controller
         $filtered_customers = array_filter($customers, function ($customer) {
             return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
         });
-
 
         $rand = array_rand($filtered_customers);
 
@@ -354,7 +184,7 @@ class InvoiceGenerationController extends Controller
         // ];
     }
 
-    function getRandomProduct(): ?array
+    public function getRandomProduct(): ?array
     {
         $products = $this->csvToArray('InventoryItems-20250106.csv', ',', true);
         $filtered_products = array_filter($products, function ($customer) {
@@ -365,7 +195,7 @@ class InvoiceGenerationController extends Controller
 
     /**
      * Convert CSV file to array
-     * 
+     *
      * @param string $filename Name of the CSV file in public folder
      * @param string $delimiter CSV delimiter (default: ',')
      * @param bool $includeHeaders Whether to include headers as keys (default: true)
@@ -412,4 +242,151 @@ class InvoiceGenerationController extends Controller
         }
         return $data;
     }
+    /**
+     * Generate invoices as PDFs, bundle them into a ZIP file, and return for download.
+     *
+     * @param array $invoices Array of invoice data.
+     * @param string $zipFileName Name of the ZIP file.
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function generateInvoicesZip(array $invoices, string $zipFileName = 'invoices.zip')
+    {
+        $zip = new ZipArchive;
+        $zipPath = public_path($zipFileName);
+
+        // Open the ZIP file for writing
+        if ($zip->open($zipPath, ZipArchive::CREATE) === true) {
+            foreach ($invoices as $index => $invoice) {
+                // Generate PDF for the invoice
+                $pdf = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
+                $pdfPath = 'invoice_' . ($index + 1) . '/pdf_invoice_' . ($index + 1) . '.pdf';
+
+                // Add the PDF to the ZIP
+                $zip->addFromString($pdfPath, $pdf->output());
+
+                // Generate CSV for the invoice
+                $csvData = $this->generateInvoiceCsv($invoice);
+                $csvPath = 'invoice_' . ($index + 1) . '/csv_invoice_' . ($index + 1) . '.csv';
+                // Add the CSV to the ZIP
+                $zip->addFromString($csvPath, $csvData);
+            }
+
+            // Close the ZIP file
+            $zip->close();
+
+            // Return the ZIP file as a response for download
+            return response()->download($zipPath)->deleteFileAfterSend(true);
+        }
+
+        // Handle error if ZIP creation fails
+        return response()->json(['error' => 'Failed to create ZIP file'], 500);
+    }
+
+    /**
+     * Generate CSV content for an invoice.
+     *
+     * @param array $invoice Invoice data.
+     * @return string CSV content.
+     */
+    private function generateInvoiceCsv(array $invoice): string
+    {
+        $csvHeader = [
+            'ContactName', 'EmailAddress', 'POAddressLine1', 'POAddressLine2', 'POAddressLine3', 'POAddressLine4',
+            'POCity', 'PORegion', 'POPostalCode', 'POCountry', 'InvoiceNumber', 'Reference', 'InvoiceDate',
+            'DueDate', 'Description', 'Quantity', 'UnitAmount', 'Discount', 'TaxAmount', 'Total',
+        ];
+
+        $csvRows = [];
+
+        foreach ($invoice['invoice_items'] as $item) {
+            $csvRows[] = [
+                '702 Print & Marketing LLC',
+                $invoice['email'] ?? '',
+                $invoice['po_address_line1'] ?? '',
+                $invoice['po_address_line2'] ?? '',
+                $invoice['po_address_line3'] ?? '',
+                $invoice['po_address_line4'] ?? '',
+                $invoice['po_city'] ?? '',
+                $invoice['po_region'] ?? '',
+                $invoice['po_zip_code'] ?? '',
+                $invoice['po_country'] ?? '',
+                $invoice['invoice_number'] ?? '',
+                '', // Reference field is empty in the provided data
+                $invoice['invoice_date'] ?? '',
+                $invoice['invoice_date'] ?? '', // Assuming DueDate matches InvoiceDate
+                $item['description'] ?? '',
+                $item['quantity'] ?? '',
+                $item['unit_price'] ?? '',
+                '', // Discount field is empty in the provided data
+                $item['tax'] ?? '',
+                $item['amount'] ?? '',
+            ];
+        }
+
+        // Open a memory stream to write CSV data
+        $stream = fopen('php://memory', 'r+');
+        fputcsv($stream, $csvHeader);
+
+        foreach ($csvRows as $row) {
+            fputcsv($stream, $row);
+        }
+
+        rewind($stream);
+        $csvContent = stream_get_contents($stream);
+        fclose($stream);
+
+        return $csvContent;
+    }
+
+    private function generateInvoiceData(
+        float $totalInvoiceAmount,
+        int $totalNumberOfInvoiceToBeGenerated,
+        int $invoiceSequenceStartFrom
+    ): array {
+        $invoices = [];
+        $remainingAmount = $totalInvoiceAmount;
+        $averageInvoiceAmount = $totalInvoiceAmount / $totalNumberOfInvoiceToBeGenerated;
+
+        // Generate invoices with small variations to make the total amount close to the requested amount
+        for ($i = 0; $i < $totalNumberOfInvoiceToBeGenerated; $i++) {
+            $isLastInvoice = ($i == $totalNumberOfInvoiceToBeGenerated - 1);
+
+            // Control the invoice amount deviation for all invoices except the last one
+            $currentInvoiceAmount = ($isLastInvoice)
+            ? $remainingAmount
+            : $this->generateRandomAmount($averageInvoiceAmount, $remainingAmount, $totalNumberOfInvoiceToBeGenerated - $i);
+
+            // Random customer and product for each invoice
+            $customer = $this->getRandomCustomer();
+            $product = $this->getRandomProduct();
+            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
+
+            $invoiceItems = $this->generateInvoiceItems(
+                $currentInvoiceAmount,
+                $product['ItemName'],
+                $product['PurchasesDescription'],
+                floatval($product['SalesUnitPrice']),
+                floatval($taxPercentage)
+            );
+
+            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
+            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
+
+            $invoices[] = [
+                 ...$customer,
+                'invoice_number' => $invoiceSequenceStartFrom + $i,
+                'invoice_date' => $this->getRandomDate(),
+                'invoice_items' => $invoiceItems,
+                'subtotal' => round($subtotal, 2),
+                'total_tax' => round($totalTax, 2),
+                'total' => round($subtotal + $totalTax, 2),
+            ];
+
+            // Update remaining amount
+            $remainingAmount -= $currentInvoiceAmount;
+        }
+
+        return $invoices;
+    }
+
 }
