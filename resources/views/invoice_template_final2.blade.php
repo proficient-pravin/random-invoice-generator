@@ -10,7 +10,7 @@
         <!-- Header -->
         <div style="display: block; margin-bottom: 20px;">
             <div style="float: right;">
-                <!-- <img src="{{ public_path('logo.jpeg') }}" style="max-height: 80px;" alt="Logo"> -->
+                <img src="{{ public_path('logo.jpeg') }}" style="max-height: 80px;" alt="Logo">
             </div>
             <div style="clear: both;"></div>
         </div>
@@ -19,37 +19,13 @@
         <div style="margin-bottom: 0px;">
             <div style="width: 50%; float: left;">
                 <h1 style="font-size: 26px; font-weight: normal; margin: 0; line-height: 1.2;">INVOICE</h1>
-                <p style="margin-left: 20%; font-weight: normal; line-height: 1;">
-                    <!-- A Team Electrical<br> -->
-                    Attention: {{ $invoice['po_attention_to'] ?? 'N/A' }}<br>
-                    
-                    @if($invoice['po_address_line1'])
-                        {{ $invoice['po_address_line1'] }}<br>
-                    @endif
-                    
-                    @if($invoice['po_address_line2'])
-                        {{ $invoice['po_address_line2'] }}<br>
-                    @endif
-
-                    @if($invoice['po_address_line3'])
-                        {{ $invoice['po_address_line3'] }}<br>
-                    @endif
-
-                    @if($invoice['po_address_line4'])
-                        {{ $invoice['po_address_line4'] }}<br>
-                    @endif
-
-                    @if($invoice['po_city'])
-                        {{ $invoice['po_city'] }}
-                    @endif
-
-                    @if($invoice['po_region'])
-                        {{ $invoice['po_region'] }}  {{ $invoice['po_zip_code'] }}<br>
-                    @endif
-
-                    @if($invoice['po_country'])
-                        {{ $invoice['po_country'] }}
-                    @endif
+                <p style="margin-left: 20%; font-weight: normal;  line-height: 1;">
+                    A Team Electrical<br>
+                    Attention: Dan Caspi<br>
+                    304 S Jones Blvd<br>
+                    Suite 689<br>
+                    LAS VEGAS NV 89107<br>
+                    USA
                 </p>
             </div>
             <div style="width: 50%; float: right;">
@@ -57,11 +33,11 @@
                     <p>
                         <span style="display: block;">
                             <span style="font-weight: bold; font-size: 12px; letter-spacing: 1px;">Invoice Date</span>
-                            <span style="display: block; font-weight: normal; font-size: 12px;">{{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('M j, Y') }}</span>
+                            <span style="display: block; font-weight: normal; font-size: 12px;">Jan 6, 2025</span>
                         </span>
                         <span style="display: block;">
                             <span style="font-weight: bold; font-size: 12px; letter-spacing: 1px;">Invoice Number</span>
-                            <span style="display: block; font-weight: normal; font-size: 12px;">{{ $invoice['invoice_number'] }}</span>
+                            <span style="display: block; font-weight: normal; font-size: 12px;">62135</span>
                         </span>
                     </p>
                 </div>
@@ -82,33 +58,9 @@
                 <p>
                     <strong style="font-weight: bold;">Delivery Address</strong><br>
                     <span style="font-weight: normal;  line-height: 1;">
-                    @if($invoice['sa_address_line1'])
-                        {{ $invoice['sa_address_line1'] }}<br>
-                    @endif
-
-                    @if($invoice['sa_address_line2'])
-                        {{ $invoice['sa_address_line2'] }}<br>
-                    @endif
-
-                    @if($invoice['sa_address_line3'])
-                        {{ $invoice['sa_address_line3'] }}<br>
-                    @endif
-
-                    @if($invoice['sa_address_line4'])
-                        {{ $invoice['sa_address_line4'] }}<br>
-                    @endif
-
-                    @if($invoice['sa_city'])
-                        {{ $invoice['sa_city'] }}<br>
-                    @endif
-
-                    @if($invoice['sa_region'])
-                        {{ $invoice['sa_region'] }} {{ $invoice['sa_zip_code'] }}<br>
-                    @endif
-
-                    @if($invoice['sa_country'])
-                        {{ $invoice['sa_country'] }}<br>
-                    @endif
+                        304 S Jones Blvd<br>
+                        LAS VEGAS NV 89107<br>
+                        US
                     </span>
                 </p>
             </div>
@@ -127,28 +79,40 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($invoice['invoice_items'] as $invoice_item)
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['quantity']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['unit_price']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['tax']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['amount']}}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">Marketing Package Level 1</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">1.00</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">$6,500.00</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">8.375%</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">$6,500.00</td>
                 </tr>
-                @endforeach
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">One Time Marketing Start Up Fee</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">1.00</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">$4,000.00</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">8.375%</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">$4,000.00</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">SOCIALMEDIAPLA Google $2000 Ad Spend</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">1.00</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">$0.00</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">8.375%</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">$0.00</td>
+                </tr>
                 <tr>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;">Subtotal</td>
-                    <td style="padding: 8px; text-align: right;">{{$invoice['subtotal']}}</td>
+                    <td style="padding: 8px; text-align: right;">$10,500.00</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;">TOTAL TAX</td>
-                    <td style="padding: 2px; text-align: right;">{{$invoice['total_tax']}}</td>
+                    <td style="padding: 2px; text-align: right;">$335.00</td>
                 </tr>
                 <tr>
                     <td colspan="5" style="padding: 0;">
@@ -160,14 +124,14 @@
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px; font-size: 18px; font-weight: 1000;">TOTAL USD</td>
-                    <td style="padding: 2px; font-size: 18px; font-weight: 1000; text-align: right;">{{$invoice['total']}}</td>
+                    <td style="padding: 2px; font-size: 18px; font-weight: 1000; text-align: right;">$10,835.00</td>
                 </tr>
             </tbody>
         </table>
 
         <!-- Footer -->
         <div style="margin-top: 30px; font-size: 13px; line-height: 1.5;">
-            <p style="font-weight: 1000;">Due Date: {{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('M j, Y') }}</p>
+            <p style="font-weight: 1000;">Due Date: Jan 6, 2025</p>
             <p>To Reorder Email: sales@print702.com</p>
 
             <p style="margin-top: 20px;">

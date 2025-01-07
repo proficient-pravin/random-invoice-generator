@@ -14,6 +14,8 @@ class InvoiceGenerationController extends Controller
 {
     public function showForm()
     {
+        // $pdf = Pdf::loadView('invoice_template_final2');
+        // return $pdf->stream('invoice-' . time() . '.pdf');
         return view('invoice_form');
     }
 
@@ -60,6 +62,7 @@ class InvoiceGenerationController extends Controller
         $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
 
         $invoice = collect($invoices[0]);
+        // dd($invoice);
         // Pass data to the Blade view for PDF generation
         $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
 
@@ -196,14 +199,13 @@ class InvoiceGenerationController extends Controller
             $totalTax = array_sum(array_column($invoiceItems, 'tax'));
 
             $invoices[] = [
+                ...$customer,
                 'invoice_number' => $invoiceSequenceStartFrom + $i,
                 'invoice_date' => $this->getRandomDate(),
-                'customer_name' => $customer['full_name'],
-                'customer_email' => $customer['email'],
                 'invoice_items' => $invoiceItems,
                 'subtotal' => round($subtotal, 2),
                 'total_tax' => round($totalTax, 2),
-                'total' => round($subtotal + $totalTax, 2)
+                'total' => round($subtotal + $totalTax, 2),
             ];
 
             // Update remaining amount
@@ -303,12 +305,41 @@ class InvoiceGenerationController extends Controller
 
         // Filter out customers where index 2, 3, or 4 is empty
         $filtered_customers = array_filter($customers, function ($customer) {
-            return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]);
+            return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
         });
 
-        $first_name = $customers[array_rand($filtered_customers)][3] ?? null;
-        $last_name = $filtered_customers[array_rand($filtered_customers)][4] ?? null;
-        $email = $filtered_customers[array_rand($filtered_customers)][2] ?? null;
+
+        $rand = array_rand($filtered_customers);
+
+        return [
+            'account_number' => $filtered_customers[$rand][1] ?? '',
+            'email' => $filtered_customers[$rand][2] ?? '',
+            'first_name' => $filtered_customers[$rand][3] ?? '',
+            'last_name' => $filtered_customers[$rand][4] ?? '',
+            'full_name' => "{$filtered_customers[$rand][3]} {$filtered_customers[$rand][4]}",
+            'po_attention_to' => $filtered_customers[$rand][5] ?? '',
+            'po_address_line1' => $filtered_customers[$rand][6] ?? '',
+            'po_address_line2' => $filtered_customers[$rand][7] ?? '',
+            'po_address_line3' => $filtered_customers[$rand][8] ?? '',
+            'po_address_line4' => $filtered_customers[$rand][9] ?? '',
+            'po_city' => $filtered_customers[$rand][10] ?? '',
+            'po_region' => $filtered_customers[$rand][11] ?? '',
+            'po_zip_code' => $filtered_customers[$rand][12] ?? '',
+            'po_country' => $filtered_customers[$rand][13] ?? '',
+            'sa_attention_to' => $filtered_customers[$rand][14] ?? '',
+            'sa_address_line1' => $filtered_customers[$rand][15] ?? '',
+            'sa_address_line2' => $filtered_customers[$rand][16] ?? '',
+            'sa_address_line3' => $filtered_customers[$rand][17] ?? '',
+            'sa_address_line4' => $filtered_customers[$rand][18] ?? '',
+            'sa_city' => $filtered_customers[$rand][19] ?? '',
+            'sa_region' => $filtered_customers[$rand][20] ?? '',
+            'sa_zip_code' => $filtered_customers[$rand][21] ?? '',
+            'sa_country' => $filtered_customers[$rand][22] ?? '',
+        ];
+
+        $first_name = $filtered_customers[$rand][3] ?? null;
+        $last_name = $filtered_customers[$rand][4] ?? null;
+        $email = $filtered_customers[$rand][2] ?? null;
 
         // foreach ($filtered_customers as $customer){
         //     $first_name = $customer[3] ?? null;
@@ -317,10 +348,10 @@ class InvoiceGenerationController extends Controller
         //     \Log::info("'first_name='$first_name ;last_name='$last_name ;email='$email");
         // }
 
-        return [
-            'full_name' => "$first_name $last_name",
-            'email' => $email,
-        ];
+        // return [
+        //     'full_name' => "$first_name $last_name",
+        //     'email' => $email,
+        // ];
     }
 
     function getRandomProduct(): ?array
