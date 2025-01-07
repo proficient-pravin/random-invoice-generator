@@ -45,7 +45,6 @@ class InvoiceGenerationController extends Controller
         if(empty(request()->num_invoices)){
             $invoices = $this->generateInvoiceDataV2(
                 floatval($totalInvoiceAmount),
-                $totalNumberOfInvoiceToBeGenerated,
                 $invoiceSequenceStartFrom
             );
         }else{
