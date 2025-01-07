@@ -17,92 +17,94 @@ class InvoiceGenerationController extends Controller
         return view('invoice_form');
     }
 
-    public function generateInvoices(Request $request)
-    {
-        // Validate user input
-        $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'start_invoice_number' => 'required|integer',
-            'num_invoices' => 'required|integer',
-            'total_amount' => 'required|numeric',
-        ]);
+    
 
-        $invoicesData = [];
-        $zip = new ZipArchive;
-        $zipFileName = 'invoices_' . time() . '.zip';
+    // public function generateInvoices(Request $request)
+    // {
+    //     // Validate user input
+    //     $validated = $request->validate([
+    //         'start_date' => 'required|date',
+    //         'end_date' => 'required|date',
+    //         'start_invoice_number' => 'required|integer',
+    //         'num_invoices' => 'required|integer',
+    //         'total_amount' => 'required|numeric',
+    //     ]);
 
-        // Open the ZIP file for writing
-        if ($zip->open(public_path($zipFileName), ZipArchive::CREATE) === TRUE) {
-            $remainingAmount = $validated['total_amount'];
+    //     $invoicesData = [];
+    //     $zip = new ZipArchive;
+    //     $zipFileName = 'invoices_' . time() . '.zip';
 
-            // Create an instance of Faker to generate random data
-            $faker = Faker::create();
+    //     // Open the ZIP file for writing
+    //     if ($zip->open(public_path($zipFileName), ZipArchive::CREATE) === TRUE) {
+    //         $remainingAmount = $validated['total_amount'];
 
-            for ($i = 0; $i < $validated['num_invoices']; $i++) {
-                // Generate random invoice data
-                $invoiceData = $this->generateRandomInvoiceData(
-                    $validated['start_invoice_number'] + $i,
-                    $remainingAmount / ($validated['num_invoices'] - $i), // Distribute amount evenly
-                    $validated['start_date'],
-                    $validated['end_date'],
-                    $faker
-                );
+    //         // Create an instance of Faker to generate random data
+    //         $faker = Faker::create();
 
-                // Create the PDF
-                $pdf = PDF::loadView('invoice_template', ['invoice' => $invoiceData]);
-                $pdfPath = 'invoices/invoice_' . ($validated['start_invoice_number'] + $i) . '.pdf';
+    //         for ($i = 0; $i < $validated['num_invoices']; $i++) {
+    //             // Generate random invoice data
+    //             $invoiceData = $this->generateRandomInvoiceData(
+    //                 $validated['start_invoice_number'] + $i,
+    //                 $remainingAmount / ($validated['num_invoices'] - $i), // Distribute amount evenly
+    //                 $validated['start_date'],
+    //                 $validated['end_date'],
+    //                 $faker
+    //             );
 
-                // Save the PDF to the ZIP
-                $zip->addFromString($pdfPath, $pdf->output());
+    //             // Create the PDF
+    //             $pdf = PDF::loadView('invoice_template', ['invoice' => $invoiceData]);
+    //             $pdfPath = 'invoices/invoice_' . ($validated['start_invoice_number'] + $i) . '.pdf';
 
-                // Collect invoice data for Excel export
-                $invoicesData[] = $invoiceData;
+    //             // Save the PDF to the ZIP
+    //             $zip->addFromString($pdfPath, $pdf->output());
 
-                // Deduct the generated amount from the remaining amount
-                $remainingAmount -= $invoiceData['total'];
-            }
+    //             // Collect invoice data for Excel export
+    //             $invoicesData[] = $invoiceData;
 
-            // Close the ZIP file
-            $zip->close();
+    //             // Deduct the generated amount from the remaining amount
+    //             $remainingAmount -= $invoiceData['total'];
+    //         }
 
-            return response()->download(public_path($zipFileName));
-        }
+    //         // Close the ZIP file
+    //         $zip->close();
 
-        return response()->json(['error' => 'Failed to create ZIP file'], 500);
-    }
+    //         return response()->download(public_path($zipFileName));
+    //     }
 
-    private function generateRandomInvoiceData($invoiceNumber, $amount, $startDate, $endDate, $faker)
-    {
-        // Generate random customer (user) data
-        $customerName = $faker->name;
-        $customerEmail = $faker->email;
-        $customerPhone = $faker->phoneNumber;
+    //     return response()->json(['error' => 'Failed to create ZIP file'], 500);
+    // }
 
-        // Generate random product data
-        $productName = $faker->word;
-        $productPrice = $amount;
-        $quantity = rand(1, 5);
+    // private function generateRandomInvoiceData($invoiceNumber, $amount, $startDate, $endDate, $faker)
+    // {
+    //     // Generate random customer (user) data
+    //     $customerName = $faker->name;
+    //     $customerEmail = $faker->email;
+    //     $customerPhone = $faker->phoneNumber;
 
-        // Calculate tax (assuming 10% tax)
-        $taxRate = 0.10;
-        $taxAmount = $amount * $taxRate;
-        $totalAmount = $amount + $taxAmount;
+    //     // Generate random product data
+    //     $productName = $faker->word;
+    //     $productPrice = $amount;
+    //     $quantity = rand(1, 5);
 
-        // Create invoice data array
-        return [
-            'invoice_number' => $invoiceNumber,
-            'customer_name' => $customerName,
-            'customer_email' => $customerEmail,
-            'customer_phone' => $customerPhone,
-            'product_name' => $productName,
-            'product_price' => $productPrice,
-            'quantity' => $quantity,
-            'amount' => $amount,
-            'tax' => $taxAmount,
-            'tax_rate' => $taxRate,
-            'total' => $totalAmount,
-            'invoice_date' => now()->toDateString(),
-        ];
-    }
+    //     // Calculate tax (assuming 10% tax)
+    //     $taxRate = 0.10;
+    //     $taxAmount = $amount * $taxRate;
+    //     $totalAmount = $amount + $taxAmount;
+
+    //     // Create invoice data array
+    //     return [
+    //         'invoice_number' => $invoiceNumber,
+    //         'customer_name' => $customerName,
+    //         'customer_email' => $customerEmail,
+    //         'customer_phone' => $customerPhone,
+    //         'product_name' => $productName,
+    //         'product_price' => $productPrice,
+    //         'quantity' => $quantity,
+    //         'amount' => $amount,
+    //         'tax' => $taxAmount,
+    //         'tax_rate' => $taxRate,
+    //         'total' => $totalAmount,
+    //         'invoice_date' => now()->toDateString(),
+    //     ];
+    // }
 }
