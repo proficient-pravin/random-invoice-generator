@@ -17,7 +17,61 @@ class InvoiceGenerationController extends Controller
         return view('invoice_form');
     }
 
-    
+    // public function generateInvoices(Request $request){
+    //     $customer = $this->getRandomCustomer();
+    //     $product = $this->getRandomProduct();
+    //     $invoiceDate = $this->getRandomDate();
+    //     $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? ($request->tax_percentage ?? 10) : 0;
+    //     $productUnitPrice = $product['SalesUnitPrice'];
+    //     $productItemName = $product['ItemName'];
+    //     $productItemDescription = $product['PurchasesDescription'];
+    //     $customerName = $customer['full_name'];
+    //     $customerEmail = $customer['email'];
+    //     $totalInvoiceAmount = $request->total_amount;
+    //     $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
+    //     $invoiceSequenceStartFrom = $request->start_invoice_number;
+
+    //     $invoices = $this->generateInvoiceData(
+    //         $totalInvoiceAmount,
+    //         $totalNumberOfInvoiceToBeGenerated,
+    //         $invoiceSequenceStartFrom,
+    //         $product,
+    //         $taxPercentage,
+    //         $productItemName,
+    //         $productItemDescription,
+    //         $productUnitPrice
+    //     );
+    // }
+
+    public function generateInvoices(Request $request)
+    {
+        $totalInvoiceAmount = $request->total_amount;
+        $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
+        $invoiceSequenceStartFrom = $request->start_invoice_number;
+
+        $invoices = $this->generateInvoiceData(
+            floatval($totalInvoiceAmount),
+            $totalNumberOfInvoiceToBeGenerated,
+            $invoiceSequenceStartFrom
+        );
+
+
+        // Calculate the total amount of generated invoices
+        $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
+
+        $invoice = collect($invoices[0]);
+        // Pass data to the Blade view for PDF generation
+        $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
+
+        return $pdf->stream('invoice-' . time() . '.pdf');
+
+        // Return the PDF to the browser
+        return $pdf->download('invoice-' . time() . '.pdf');
+        
+        dd($invoices, $totalGeneratedAmount);
+    }
+
+
 
     // public function generateInvoices(Request $request)
     // {
@@ -107,4 +161,224 @@ class InvoiceGenerationController extends Controller
     //         'invoice_date' => now()->toDateString(),
     //     ];
     // }
+    private function generateInvoiceData(
+        float $totalInvoiceAmount,
+        int $totalNumberOfInvoiceToBeGenerated,
+        int $invoiceSequenceStartFrom
+    ): array {
+        $invoices = [];
+        $remainingAmount = $totalInvoiceAmount;
+        $averageInvoiceAmount = $totalInvoiceAmount / $totalNumberOfInvoiceToBeGenerated;
+
+        // Generate invoices with small variations to make the total amount close to the requested amount
+        for ($i = 0; $i < $totalNumberOfInvoiceToBeGenerated; $i++) {
+            $isLastInvoice = ($i == $totalNumberOfInvoiceToBeGenerated - 1);
+
+            // Control the invoice amount deviation for all invoices except the last one
+            $currentInvoiceAmount = ($isLastInvoice)
+                ? $remainingAmount
+                : $this->generateRandomAmount($averageInvoiceAmount, $remainingAmount, $totalNumberOfInvoiceToBeGenerated - $i);
+
+            // Random customer and product for each invoice
+            $customer = $this->getRandomCustomer();
+            $product = $this->getRandomProduct();
+            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
+
+            $invoiceItems = $this->generateInvoiceItems(
+                $currentInvoiceAmount,
+                $product['ItemName'],
+                $product['PurchasesDescription'],
+                floatval($product['SalesUnitPrice']),
+                floatval($taxPercentage)
+            );
+
+            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
+            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
+
+            $invoices[] = [
+                'invoice_number' => $invoiceSequenceStartFrom + $i,
+                'invoice_date' => $this->getRandomDate(),
+                'customer_name' => $customer['full_name'],
+                'customer_email' => $customer['email'],
+                'invoice_items' => $invoiceItems,
+                'subtotal' => round($subtotal, 2),
+                'total_tax' => round($totalTax, 2),
+                'total' => round($subtotal + $totalTax, 2)
+            ];
+
+            // Update remaining amount
+            $remainingAmount -= $currentInvoiceAmount;
+        }
+
+        return $invoices;
+    }
+
+    private function generateInvoiceItems(
+        float $targetAmount,
+        string $productItemName,
+        string $productItemDescription,
+        float $productUnitPrice,
+        float $taxPercentage
+    ): array {
+        $items = [];
+        $remainingAmount = $targetAmount;
+        $usedProducts = []; // Track used product names
+        $numberOfItems = rand(1, 4);
+    
+        for ($i = 0; $i < $numberOfItems; $i++) {
+            $isLastItem = ($i == $numberOfItems - 1);
+            $maxItemAmount = $isLastItem ? $remainingAmount : ($remainingAmount * 0.8);
+    
+            // Ensure a unique product with a valid unit price for each item
+            do {
+                $product = $this->getRandomProduct();
+            } while (
+                in_array($product['ItemName'], $usedProducts) || 
+                floatval($product['SalesUnitPrice']) <= 0
+            );
+    
+            $usedProducts[] = $product['ItemName']; // Add product to used list
+    
+            // Use the product's unit price
+            $unitPrice = floatval($product['SalesUnitPrice']);
+    
+            // Randomly select a quantity between 1 and 4
+            $quantity = $isLastItem
+                ? max(1, min(4, ceil($remainingAmount / $unitPrice))) // Ensure valid quantity for the last item
+                : rand(1, 4);
+    
+            $amount = round($quantity * $unitPrice, 2);
+            $tax = round($amount * ($taxPercentage / 100), 2);
+    
+            $items[] = [
+                'name' => $product['ItemName'],
+                'description' => $product['PurchasesDescription'],
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'tax' => $tax,
+                'amount' => $amount
+            ];
+    
+            $remainingAmount -= $amount;
+        }
+    
+        return $items;
+    }
+
+    private function generateRandomAmount(
+        float $averageAmount,
+        float $remainingTotal,
+        int $remainingCount
+    ): float {
+        if ($remainingCount <= 1) {
+            return $remainingTotal;
+        }
+
+        // Limit the deviation of each invoice amount to within ±10% of the average
+        $minAmount = max($averageAmount * 0.9, 0.01);
+        $maxAmount = min($averageAmount * 1.1, $remainingTotal - ($remainingCount - 1) * 0.01);
+
+        return round(rand($minAmount * 100, $maxAmount * 100) / 100, 2);
+    }
+
+    function getRandomDate()
+    {
+        $startDate = strtotime(request()->start_date);
+        $endDate = strtotime(request()->end_date);
+
+        if (!$startDate || !$endDate) {
+            return null;
+        }
+
+        // Generate random timestamp between start and end dates
+        $randomTimestamp = mt_rand($startDate, $endDate);
+
+        // Convert back to date format
+        return date('Y-m-d', $randomTimestamp);
+    }
+
+    function getRandomCustomer(): ?array
+    {
+        $customers = $this->csvToArray('Contacts.csv');
+
+        // Filter out customers where index 2, 3, or 4 is empty
+        $filtered_customers = array_filter($customers, function ($customer) {
+            return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]);
+        });
+
+        $first_name = $customers[array_rand($filtered_customers)][3] ?? null;
+        $last_name = $filtered_customers[array_rand($filtered_customers)][4] ?? null;
+        $email = $filtered_customers[array_rand($filtered_customers)][2] ?? null;
+
+        // foreach ($filtered_customers as $customer){
+        //     $first_name = $customer[3] ?? null;
+        //     $last_name = $customer[4] ?? null;
+        //     $email = $customer[2] ?? null;
+        //     \Log::info("'first_name='$first_name ;last_name='$last_name ;email='$email");
+        // }
+
+        return [
+            'full_name' => "$first_name $last_name",
+            'email' => $email,
+        ];
+    }
+
+    function getRandomProduct(): ?array
+    {
+        $products = $this->csvToArray('InventoryItems-20250106.csv', ',', true);
+        $filtered_products = array_filter($products, function ($customer) {
+            return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
+        });
+        return $products[array_rand($filtered_products)];
+    }
+
+    /**
+     * Convert CSV file to array
+     * 
+     * @param string $filename Name of the CSV file in public folder
+     * @param string $delimiter CSV delimiter (default: ',')
+     * @param bool $includeHeaders Whether to include headers as keys (default: true)
+     * @return array|null Returns array of CSV data or null if file not found
+     */
+    private function csvToArray(string $filename, string $delimiter = ',', bool $includeHeaders = false): ?array
+    {
+        $filePath = public_path($filename);
+
+        if (!file_exists($filePath)) {
+            return null;
+        }
+
+        $data = [];
+        $headers = [];
+
+        if (($handle = fopen($filePath, "r")) !== false) {
+            if ($includeHeaders) {
+                // Get headers and use them as keys
+                $headers = fgetcsv($handle, 0, $delimiter);
+                $headerCount = count($headers);
+            } else {
+                // Skip the header row but don't use it
+                fgetcsv($handle, 0, $delimiter);
+            }
+
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                if ($includeHeaders) {
+                    // Pad the row with null values if it's shorter than headers
+                    $rowCount = count($row);
+                    if ($rowCount < $headerCount) {
+                        $row = array_pad($row, $headerCount, null);
+                    }
+                    // Use headers as keys
+                    $rowData = array_combine($headers, $row);
+                    $data[] = $rowData;
+                } else {
+                    // Just add the row as is
+                    $data[] = $row;
+                }
+            }
+
+            fclose($handle);
+        }
+        return $data;
+    }
 }

@@ -38,13 +38,18 @@
                     <label for="num_invoices">Number of Invoices</label>
                     <input type="number" class="form-control" name="num_invoices" required>
                 </div>
+                <div class="form-group col-md-6">
+                    <!-- Total Amount -->
+                    <label for="tax_percentage">Tax Perecentage</label>
+                    <input type="number" class="form-control" name="tax_percentage" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <!-- Total Amount -->
+                    <label for="total_amount">Total Amount</label>
+                    <input type="number" class="form-control" name="total_amount" required>
+                </div>
             </div>
-
-            <div class="form-group">
-                <!-- Total Amount -->
-                <label for="total_amount">Total Amount</label>
-                <input type="number" class="form-control" name="total_amount" required>
-            </div>
+            
 
             <div class="form-group text-center">
                 <!-- Submit Button -->
