@@ -129,7 +129,7 @@
             <tbody>
                 @foreach($invoice['invoice_items'] as $invoice_item)
                 <tr>
-                    <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
+                    <td style="padding: 4px; font-size: 13px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
                     <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['quantity']}}</td>
                     <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['unit_price']}}</td>
                     <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['tax_percentage'] }}%</td>
