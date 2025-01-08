@@ -53,7 +53,7 @@
                 </p>
             </div>
             <div style="width: 50%; float: right;">
-                <div style="width: 100%; float: left; line-height: 1; padding-bottom:10px;padding-left:18%;">
+                <div style="width: 100%; float: left; line-height: 1; padding-bottom:10px;padding-top:0px;padding-left:18%;">
                     <p>
                         <span style="display: block;">
                             <span style="font-weight: bold; font-size: 12px;">Invoice Date</span>
