@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Invoice</title>
 </head>
-<body style="font-family: DejaVu Sans, sans-serif; margin: 0; padding: 0; line-height: 1.3; font-size: 12px;">
+<body style="font-family: DejaVu Sans, sans-serif; margin: 0; padding: 0; line-height: 1.3; font-size: 14px;">
     <div style="width: 100%; max-width: 100%; margin: auto;">
         <!-- Header -->
         <div style="display: block; margin-bottom: 20px;">
