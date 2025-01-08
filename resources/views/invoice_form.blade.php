@@ -32,7 +32,7 @@
                 <!-- Start Invoice Number -->
                 <div class="form-group col-md-6">
                     <label for="start_invoice_number">Start Invoice Number</label>
-                    <input type="number" class="form-control" name="start_invoice_number" required>
+                    <input type="number" class="form-control" name="start_invoice_number" value="{{$startInvoiceNumber}}" required>
                 </div>
 
                 <!-- Number of Invoices -->

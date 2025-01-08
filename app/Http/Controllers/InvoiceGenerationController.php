@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 // use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use ZipArchive;
 use Illuminate\Support\Facades\File;
 
@@ -15,7 +16,11 @@ class InvoiceGenerationController extends Controller
     {
         // $pdf = Pdf::loadView('invoice_template_final2');
         // return $pdf->stream('invoice-' . time() . '.pdf');
-        return view('invoice_form');
+        $startInvoiceNumber = Cache::get('start_invoice_number', 1); // Default to 50 if not found
+
+        return view('invoice_form', [
+            'startInvoiceNumber' => $startInvoiceNumber
+        ]);
     }
 
     public function generateInvoices(Request $request)
@@ -31,6 +36,8 @@ class InvoiceGenerationController extends Controller
             'num_invoices' => 'nullable|integer|max:500',
             'total_amount' => 'required',
         ]);
+
+
 
         $totalInvoiceAmount = $request->total_amount;
         $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
@@ -62,21 +69,17 @@ class InvoiceGenerationController extends Controller
             File::delete($file); // Delete each file
         }
 
+        Cache::put('start_invoice_number',  request()->start_invoice_number + count($invoices));
+
         // Calculate the total amount of generated invoices
         $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
-        // dd($invoices);
         return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
         
-        // $invoice = collect($invoices[0]);
-        // dd($invoice);
+        $invoice = collect($invoices[0]);
+        // Pass data to the Blade view for PDF generation
+        $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
 
-        // // Pass data to the Blade view for PDF generation
-        // $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
-
-        // return $pdf->stream('invoice-' . time() . '.pdf');
-
-        // // Return the PDF to the browser
-        // return $pdf->download('invoice-' . time() . '.pdf');
+        return $pdf->stream('invoice-' . time() . '.pdf');
     }
 
     private function generateInvoiceItems(
@@ -114,11 +117,11 @@ class InvoiceGenerationController extends Controller
             $items[] = [
                 'name' => $product['ItemName'],
                 'description' => $product['PurchasesDescription'],
-                'quantity' => $quantity,
-                'unit_price' => number_format($unitPrice, 2, '.', ''),
-                'tax' => number_format($tax, 2, '.', ''),
+                'quantity' => number_format($quantity, 2, '.', ','),
+                'unit_price' => number_format($unitPrice, 2, '.', ','),
+                'tax' => number_format($tax, 2, '.', ','),
                 'tax_percentage' => $taxPercentage,
-                'amount' => number_format($amount, 2, '.', ''),
+                'amount' => number_format($amount, 2, '.', ','),
             ];
     
             $remainingAmount = max(0, $remainingAmount - $amount);
@@ -189,9 +192,9 @@ class InvoiceGenerationController extends Controller
                 'invoice_number' => $invoiceSequenceStartFrom + $i,
                 'invoice_date' => $this->getRandomDate(),
                 'invoice_items' => $invoiceItems,
-                'subtotal' => number_format($subtotal, 2, '.', ''),
-                'total_tax' => number_format($totalTax, 2, '.', ''),
-                'total' => number_format(($subtotal + $totalTax), 2, '.', ''),
+                'subtotal' => number_format($subtotal, 2, '.', ','),
+                'total_tax' => number_format($totalTax, 2, '.', ','),
+                'total' => number_format(($subtotal + $totalTax), 2, '.', ','),
             ];
 
             // Update remaining amount
@@ -240,9 +243,9 @@ class InvoiceGenerationController extends Controller
                 'invoice_number' => $invoiceSequenceStartFrom++,
                 'invoice_date' => $this->getRandomDate(),
                 'invoice_items' => $invoiceItems,
-                'subtotal' => number_format($subtotal, 2, '.', ''),
-                'total_tax' => number_format($totalTax, 2, '.', ''),
-                'total' => number_format(($subtotal + $totalTax), 2, '.', ''),
+                'subtotal' => number_format($subtotal, 2, '.', ','),
+                'total_tax' => number_format($totalTax, 2, '.', ','),
+                'total' => number_format(($subtotal + $totalTax), 2, '.', ','),
             ];
         }
     

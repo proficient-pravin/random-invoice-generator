@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Invoice</title>
 </head>
-<body style="font-family: DejaVu Sans, sans-serif; margin: 0; padding: 0; line-height: 1.3; font-size: 14px;">
+<body style="font-family: DejaVu Sans, sans-serif; margin: 0; padding: 0; line-height: 1.3; font-size: 12px;">
     <div style="width: 100%; max-width: 100%; margin: auto;">
         <!-- Header -->
         <div style="display: block; margin-bottom: 20px;">
@@ -53,19 +53,19 @@
                 </p>
             </div>
             <div style="width: 50%; float: right;">
-                <div style="width: 100%; float: left; line-height: 1; padding-bottom:10px;">
+                <div style="width: 100%; float: left; line-height: 1; padding-bottom:10px;padding-left:18%;">
                     <p>
                         <span style="display: block;">
-                            <span style="font-weight: bold; font-size: 12px; letter-spacing: 1px;">Invoice Date</span>
+                            <span style="font-weight: bold; font-size: 12px;">Invoice Date</span>
                             <span style="display: block; font-weight: normal; font-size: 12px;">{{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('M j, Y') }}</span>
                         </span>
-                        <span style="display: block;">
-                            <span style="font-weight: bold; font-size: 12px; letter-spacing: 1px;">Invoice Number</span>
+                        <span style="display: block; padding-top:10px;">
+                            <span style="font-weight: bold; font-size: 12px;">Invoice Number</span>
                             <span style="display: block; font-weight: normal; font-size: 12px;">{{ $invoice['invoice_number'] }}</span>
                         </span>
                     </p>
                 </div>
-                <div style="width: 50%; float: right; font-weight: normal; line-height: 1;">
+                <div style="width: 40%; float: right; font-weight: normal; line-height: 1; font-size: 12px">
                     702 Print &amp; Marketing LLC<br>
                     5525 S Decatur Blvd # 106<br>
                     Las Vegas 89118 USA<br>
@@ -77,8 +77,8 @@
         </div>
 
         <!-- Delivery Address -->
-        <div style="margin-bottom: 10px; line-height: 1;">
-            <div style="width: 50%; float: right;">
+        <div style="margin-bottom: 10px; line-height: 1; padding-left:18%;">
+            <div style="width: 50%; float: right; ">
                 <p>
                     <strong style="font-weight: bold;">Delivery Address</strong><br>
                     <span style="font-weight: normal;  line-height: 1;">
@@ -119,20 +119,20 @@
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
                 <tr>
-                    <th style="text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: 1000;">Description</th>
-                    <th style="text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: 1000;">Quantity</th>
-                    <th style="text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: 1000;">Unit Price</th>
-                    <th style="text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: 1000;">Tax</th>
-                    <th style="text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: 1000;">Amount USD</th>
+                    <th style="width:40%; text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Description</th>
+                    <th style="width=:10%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Quantity</th>
+                    <th style="width=15%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Unit Price</th>
+                    <th style="width=20%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Tax</th>
+                    <th style="width=15%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Amount USD</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($invoice['invoice_items'] as $invoice_item)
                 <tr>
                     <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['quantity']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['unit_price']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['tax_percentage'] }}%</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['quantity']}}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['unit_price']}}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['tax_percentage'] }}%</td>
                     <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['amount'] }}</td>
                 </tr>
                 @endforeach
@@ -140,37 +140,40 @@
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
-                    <td style="padding: 8px;">Subtotal</td>
-                    <td style="padding: 8px; text-align: right;">{{ number_format($invoice['subtotal'], 2, '.', '')}}</td>
+                    <td style="padding: 8px; text-align: right;">Subtotal</td>
+                    <td style="padding: 8px; text-align: right;">{{ $invoice['subtotal']}}</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
-                    <td style="padding: 2px;">TOTAL TAX</td>
-                    <td style="padding: 2px; text-align: left;">{{$invoice['total_tax'] }}</td>
+                    <td style="padding: 8px; text-align: right;">TOTAL TAX</td>
+                    <td style="padding: 8px; text-align: right;">{{$invoice['total_tax'] }}</td>
                 </tr>
                 <tr>
-                    <td colspan="5" style="padding: 0;">
-                        <hr style="margin: 0; border: 1px solid #ccc;">
+                    <td style="padding: 2px;"></td>
+                    <td style="padding: 2px;"></td>
+                    <td colspan="3" style="padding: 0;">
+                        <hr style="margin: 0; border: 0.2px solid #272525;">
                     </td>
                 </tr>
                 <tr>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
-                    <td style="padding: 2px; font-size: 18px; font-weight: 1000;">TOTAL USD</td>
-                    <td style="padding: 2px; font-size: 18px; font-weight: 1000; text-align: right;">{{$invoice['total']}}</td>
+                    <td style="padding: 2px; font-size: 12px; font-weight: bold; text-align: right;">TOTAL USD</td>
+                    <td style="padding: 2px; font-size: 12px; font-weight: bold; text-align: right;">{{$invoice['total']}}</td>
                 </tr>
             </tbody>
         </table>
 
         <!-- Footer -->
-        <div style="margin-top: 30px; font-size: 13px; line-height: 1.5;">
-            <p style="font-weight: 1000;">Due Date: {{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('M j, Y') }}</p>
-            <p>To Reorder Email: sales@print702.com</p>
+        <div style="margin-top: 30px;">
+            <p style="font-weight: bold; font-size: 13px;">Due Date: {{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('M j, Y') }} <br>
+                <p>To Reorder Email: sales@print702.com</p>
+            </p>
 
-            <p style="margin-top: 20px;">
+            <p style="margin-top: 20px; font-size: 13px;">
                 FULL PAYMENT IS REQUIRED AT TIME OF ORDER.<br>
                 There is a 3.5% fee on all Card payments made over the phone/card not present.<br><br>
                 ALL SALES ARE CONSIDERED FINAL. IF A REFUND IS REQUESTED WITHIN THE FIRST 24 HOURS WE WILL PROVIDE A 50% REFUND ONLY. ANYTHING AFTER THE 24 HOUR PERIOD THERE WILL BE NO REFUND GIVEN AND ONLY A STORE CREDIT WILL BE ISSUED ON A CASE BY CASE BASIS.<br><br>
