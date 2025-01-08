@@ -77,7 +77,7 @@ class InvoiceGenerationController extends Controller
         
         $invoice = collect($invoices[0]);
         // Pass data to the Blade view for PDF generation
-        $pdf = Pdf::loadView('invoice_template_final', compact('invoice'));
+        $pdf = Pdf::loadView('invoice_template_final', compact('invoice'))->setPaper([0, 0, 612, 792], 'portrait');
 
         return $pdf->stream('invoice-' . time() . '.pdf');
     }

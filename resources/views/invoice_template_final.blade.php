@@ -10,7 +10,7 @@
         <!-- Header -->
         <div style="display: block; margin-bottom: 20px;">
             <div style="float: right;">
-                <img src="{{ public_path('logo.jpeg') }}" style="max-height: 80px;" alt="Logo">
+                <img src="{{ public_path('logo.jpeg') }}" style="max-height: 85px;" alt="Logo">
             </div>
             <div style="clear: both;"></div>
         </div>
@@ -18,8 +18,8 @@
         <!-- Invoice and Address Details -->
         <div style="margin-bottom: 0px;">
             <div style="width: 50%; float: left;">
-                <h1 style="font-size: 26px; font-weight: normal; margin: 0; line-height: 1.2;">INVOICE</h1>
-                <p style="margin-left: 20%; font-weight: normal; line-height: 1;">
+                <h1 style="font-size: 32px; font-weight: normal; margin: 0; line-height: 1.2;">INVOICE</h1>
+                <p style="margin-left: 25%; font-weight: normal; line-height: 1;">
                     <!-- A Team Electrical<br> -->
                     Attention: {{ $invoice['po_attention_to'] ?? 'N/A' }}<br>
                     
@@ -80,7 +80,7 @@
         <div style="margin-bottom: 10px; line-height: 1; padding-left:18%;">
             <div style="width: 50%; float: right; ">
                 <p>
-                    <strong style="font-weight: bold;">Delivery Address</strong><br>
+                    <strong style="font-weight: bold; font-size: 12px;">Delivery Address</strong><br>
                     <span style="font-weight: normal;  line-height: 1;">
                     @if($invoice['sa_address_line1'])
                         {{ $invoice['sa_address_line1'] }}<br>
@@ -119,36 +119,36 @@
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
                 <tr>
-                    <th style="width:40%; text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Description</th>
-                    <th style="width=:10%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Quantity</th>
-                    <th style="width=15%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Unit Price</th>
-                    <th style="width=20%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Tax</th>
-                    <th style="width=15%; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Amount USD</th>
+                    <th style="width:40%; font-size: 12px; text-align: left; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Description</th>
+                    <th style="width=:10%; font-size: 12px; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Quantity</th>
+                    <th style="width=15%; font-size: 12px; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Unit Price</th>
+                    <th style="width=20%; font-size: 12px; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Tax</th>
+                    <th style="width=15%; font-size: 12px; text-align: right; border-bottom: 1px solid #000000; padding: 8px; font-weight: bold;">Amount USD</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($invoice['invoice_items'] as $invoice_item)
                 <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['quantity']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['unit_price']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['tax_percentage'] }}%</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['amount'] }}</td>
+                    <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
+                    <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['quantity']}}</td>
+                    <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['unit_price']}}</td>
+                    <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['tax_percentage'] }}%</td>
+                    <td style="padding: 4px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['amount'] }}</td>
                 </tr>
                 @endforeach
                 <tr>
-                    <td style="padding: 8px;"></td>
-                    <td style="padding: 8px;"></td>
-                    <td style="padding: 8px;"></td>
-                    <td style="padding: 8px; text-align: right;">Subtotal</td>
-                    <td style="padding: 8px; text-align: right;">{{ $invoice['subtotal']}}</td>
+                    <td style="padding: 4px;"></td>
+                    <td style="padding: 4px;"></td>
+                    <td style="padding: 4px;"></td>
+                    <td style="padding: 4px; text-align: right; font-size: 12px;">Subtotal</td>
+                    <td style="padding: 4px; text-align: right;">{{ $invoice['subtotal']}}</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
-                    <td style="padding: 8px; text-align: right;">TOTAL TAX</td>
-                    <td style="padding: 8px; text-align: right;">{{$invoice['total_tax'] }}</td>
+                    <td style="padding: 4px; text-align: right; font-size: 12px;">TOTAL TAX</td>
+                    <td style="padding: 4px; text-align: right; font-size: 12px;">{{$invoice['total_tax'] }}</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px;"></td>
