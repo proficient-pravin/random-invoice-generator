@@ -72,7 +72,7 @@ class InvoiceGenerationController extends Controller
         Cache::put('start_invoice_number',  request()->start_invoice_number + count($invoices));
 
         // Calculate the total amount of generated invoices
-        $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
+        $totalGeneratedAmount = str_replace(",","",array_sum(array_column($invoices, 'total')));
         return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
         
         $invoice = collect($invoices[0]);
