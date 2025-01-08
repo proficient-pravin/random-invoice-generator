@@ -131,9 +131,9 @@
                 <tr>
                     <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['name']}}</td>
                     <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['quantity']}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{number_format($invoice_item['unit_price'], 2, '.', '')}}</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{number_format($invoice_item['tax_percentage'], 2, '.', '') }}%</td>
-                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{number_format($invoice_item['amount'], 2, '.', '') }}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['unit_price']}}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187);">{{$invoice_item['tax_percentage'] }}%</td>
+                    <td style="padding: 8px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">{{$invoice_item['amount'] }}</td>
                 </tr>
                 @endforeach
                 <tr>
@@ -148,7 +148,7 @@
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;">TOTAL TAX</td>
-                    <td style="padding: 2px; text-align: left;">{{number_format($invoice['total_tax'], 2, '.', '') }}</td>
+                    <td style="padding: 2px; text-align: left;">{{$invoice['total_tax'] }}</td>
                 </tr>
                 <tr>
                     <td colspan="5" style="padding: 0;">
@@ -160,7 +160,7 @@
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px;"></td>
                     <td style="padding: 2px; font-size: 18px; font-weight: 1000;">TOTAL USD</td>
-                    <td style="padding: 2px; font-size: 18px; font-weight: 1000; text-align: right;">{{number_format($invoice['total'], 2, '.', '')}}</td>
+                    <td style="padding: 2px; font-size: 18px; font-weight: 1000; text-align: right;">{{$invoice['total']}}</td>
                 </tr>
             </tbody>
         </table>

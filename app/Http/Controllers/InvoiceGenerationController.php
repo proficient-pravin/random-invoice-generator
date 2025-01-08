@@ -240,9 +240,9 @@ class InvoiceGenerationController extends Controller
                 'invoice_number' => $invoiceSequenceStartFrom++,
                 'invoice_date' => $this->getRandomDate(),
                 'invoice_items' => $invoiceItems,
-                'subtotal' => round($subtotal, 2),
-                'total_tax' => round($totalTax, 2),
-                'total' => round($currentInvoiceAmount, 2),
+                'subtotal' => number_format($subtotal, 2, '.', ''),
+                'total_tax' => number_format($totalTax, 2, '.', ''),
+                'total' => number_format(($subtotal + $totalTax), 2, '.', ''),
             ];
         }
     
@@ -398,13 +398,13 @@ class InvoiceGenerationController extends Controller
 
                 // Add the PDF to the ZIP
                 $zip->addFromString($pdfPath, $pdf->output());
-
-                // Generate CSV for the invoice
-                $csvData = $this->generateInvoiceCsv($invoice);
-                $csvPath = 'csv_invoice_' . ($index + 1) . '.csv';
-                // Add the CSV to the ZIP
-                $zip->addFromString($csvPath, $csvData);
             }
+
+            // Generate CSV for the invoice
+            $csvData = $this->generateInvoiceCsv($invoices);
+            $csvPath = 'csv_invoice.csv';
+            // Add the CSV to the ZIP
+            $zip->addFromString($csvPath, $csvData);
 
             // Close the ZIP file
             $zip->close();
@@ -423,7 +423,7 @@ class InvoiceGenerationController extends Controller
      * @param array $invoice Invoice data.
      * @return string CSV content.
      */
-    private function generateInvoiceCsv(array $invoice): string
+    private function generateInvoiceCsv(array $invoices): string
     {
         $csvHeader = [
             'ContactName', 'EmailAddress', 'POAddressLine1', 'POAddressLine2', 'POAddressLine3', 'POAddressLine4',
@@ -433,29 +433,31 @@ class InvoiceGenerationController extends Controller
 
         $csvRows = [];
 
-        foreach ($invoice['invoice_items'] as $item) {
-            $csvRows[] = [
-                '702 Print & Marketing LLC',
-                $invoice['email'] ?? '',
-                $invoice['po_address_line1'] ?? '',
-                $invoice['po_address_line2'] ?? '',
-                $invoice['po_address_line3'] ?? '',
-                $invoice['po_address_line4'] ?? '',
-                $invoice['po_city'] ?? '',
-                $invoice['po_region'] ?? '',
-                $invoice['po_zip_code'] ?? '',
-                $invoice['po_country'] ?? '',
-                $invoice['invoice_number'] ?? '',
-                '', // Reference field is empty in the provided data
-                $invoice['invoice_date'] ?? '',
-                $invoice['invoice_date'] ?? '', // Assuming DueDate matches InvoiceDate
-                $item['description'] ?? '',
-                $item['quantity'] ?? '',
-                $item['unit_price'] ?? '',
-                '', // Discount field is empty in the provided data
-                $item['tax'] ?? '',
-                $item['amount'] ?? '',
-            ];
+        foreach ($invoices as $invoice){
+            foreach ($invoice['invoice_items'] as $item) {
+                $csvRows[] = [
+                    '702 Print & Marketing LLC',
+                    $invoice['email'] ?? '',
+                    $invoice['po_address_line1'] ?? '',
+                    $invoice['po_address_line2'] ?? '',
+                    $invoice['po_address_line3'] ?? '',
+                    $invoice['po_address_line4'] ?? '',
+                    $invoice['po_city'] ?? '',
+                    $invoice['po_region'] ?? '',
+                    $invoice['po_zip_code'] ?? '',
+                    $invoice['po_country'] ?? '',
+                    $invoice['invoice_number'] ?? '',
+                    '', // Reference field is empty in the provided data
+                    $invoice['invoice_date'] ?? '',
+                    $invoice['invoice_date'] ?? '', // Assuming DueDate matches InvoiceDate
+                    $item['description'] ?? '',
+                    $item['quantity'] ?? '',
+                    $item['unit_price'] ?? '',
+                    '', // Discount field is empty in the provided data
+                    $item['tax'] ?? '',
+                    $item['amount'] ?? '',
+                ];
+            }
         }
 
         // Open a memory stream to write CSV data
