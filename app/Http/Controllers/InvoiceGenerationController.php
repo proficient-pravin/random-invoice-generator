@@ -401,14 +401,26 @@ class InvoiceGenerationController extends Controller
 
         // Open the ZIP file for writing
         if ($zip->open($zipPath, ZipArchive::CREATE) === true) {
+            $htmlContent = '';
             foreach ($invoices as $index => $invoice) {
                 // Generate PDF for the invoice
                 $pdf = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
                 $pdfPath = 'pdf_invoice_' . ($index + 1) . '.pdf';
+                $htmlContent .= view('invoice_template_final', ['invoice' => $invoice])->render();
+
+                // // Add a page break after each invoice (if needed)
+                // $htmlContent .= '<div style="page-break-after: always;"></div>';
 
                 // Add the PDF to the ZIP
                 $zip->addFromString($pdfPath, $pdf->output());
             }
+
+            // Generate a single PDF from the combined HTML
+            $pdf = PDF::loadHTML($htmlContent);
+
+            // Add the single PDF to the ZIP
+            $pdfPath = 'all_invoices.pdf';
+            $zip->addFromString($pdfPath, $pdf->output());
 
             // Generate CSV for the invoice
             $csvData = $this->generateInvoiceCsv($invoices);
