@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Invoice</title>
 </head>
-<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; line-height: 1.3; font-size: 14px;">
+<body >
     <div style="width: 100%; max-width: 100%; margin: auto;">
         <!-- Header -->
         <div style="display: block; height: auto; ">
@@ -55,7 +55,7 @@
                 <div style="width: 100%; float: left; line-height: 1; padding-bottom:10px;padding-top:0px;padding-left:18%;">
                     <p>
                         <span style="display: block;">
-                            <span style="font-weight: bold; font-size: 14px;">Invoice Date</span>
+                            <span style="font-weight: bold; font-size: 14px; word-spacing: 0.1px; letter-spacing: 0.1px;">Invoice Date</span>
                             <span style="display: block; font-weight: normal; font-size: 14px;">{{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('M j, Y') }}</span>
                         </span>
                         <span style="display: block; padding-top:10px;">
@@ -179,6 +179,16 @@
                 CARD HOLDER AGREES TO CHARGES TO THEIR CREDIT AND/OR DEBIT CARD AND FULLY AGREE NOT TO PURSUE A CHARGEBACK.
             </p>
 
+            {{-- <div style="text-align: left; margin-top: 20px; font-family: Arial, sans-serif;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="{{ public_path('image.svg') }}" style="width: 200px; height: auto;">
+                </div>
+                <div style="margin-top: 1px;">
+                    <a href="#" style="color: #0078C1; font-size: 18px; font-weight: bold;">
+                        View and pay online now
+                    </a>
+                </div>
+            </div> --}}
             <div style="margin-top: 20px; font-size: 12px; color: #555;">
                 Registered Office: Attention: Accounting, 5525 S Decatur Blvd #106, Las Vegas, NV, 89118, United States.
             </div>
