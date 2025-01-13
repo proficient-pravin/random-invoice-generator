@@ -49,7 +49,7 @@ class InvoiceGenerationController extends Controller
 
             return redirect()->back()->with('success', 'CSV files have been successfully updated.');
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'An error occurred while updating the files.']);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
     public function generateInvoices(Request $request)
