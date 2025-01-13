@@ -18,9 +18,9 @@ class InvoiceGenerationController extends Controller
         // return $pdf->stream('invoice-' . time() . '.pdf');
         $startInvoiceNumber = Cache::get('start_invoice_number', 1); // Default to 50 if not found
 
-        return view('developer', [
-            'startInvoiceNumber' => $startInvoiceNumber
-        ]);
+        // return view('developer', [
+        //     'startInvoiceNumber' => $startInvoiceNumber
+        // ]);
         return view('invoice_form', [
             'startInvoiceNumber' => $startInvoiceNumber
         ]);
