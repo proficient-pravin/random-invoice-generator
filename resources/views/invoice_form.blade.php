@@ -10,6 +10,23 @@
 </head>
 
 <body>
+    <div class="container container mt-5">
+        @if (session('success'))
+            <div class="alert alert-success mt-4">
+                {{ session('success') }}
+            </div>
+        @endif
+        <!-- Error Messages -->
+        @if ($errors->any())
+            <div class="alert alert-danger mt-4">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
     <div class="container mt-5">
         <h2 class="text-center mb-4">Generate Invoices</h2>
         <form method="POST" action="{{ route('generate.invoices') }}" id="invoiceForm">
@@ -32,7 +49,8 @@
                 <!-- Start Invoice Number -->
                 <div class="form-group col-md-6">
                     <label for="start_invoice_number">Start Invoice Number</label>
-                    <input type="number" class="form-control" name="start_invoice_number" value="{{$startInvoiceNumber}}" required>
+                    <input type="number" class="form-control" name="start_invoice_number"
+                        value="{{ $startInvoiceNumber }}" required>
                 </div>
 
                 <!-- Number of Invoices -->
@@ -65,16 +83,33 @@
             </div>
         </div>
 
-        <!-- Error Messages -->
-        @if ($errors->any())
-            <div class="alert alert-danger mt-4">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+
+    </div>
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Update Product and Customer CSV</h2>
+
+        <form method="POST" action="{{ route('update.csv') }}" enctype="multipart/form-data">
+            @csrf
+            <div class="form-row">
+                <!-- Upload Product CSV -->
+                <div class="form-group col-md-6">
+                    <label for="product_csv">Upload Product CSV</label>
+                    <input type="file" class="form-control" name="product_csv" accept=".csv">
+                </div>
+
+                <!-- Upload Customer CSV -->
+                <div class="form-group col-md-6">
+                    <label for="customer_csv">Upload Customer CSV</label>
+                    <input type="file" class="form-control" name="customer_csv" accept=".csv">
+                </div>
             </div>
-        @endif
+
+            <div class="form-group text-center">
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-success">Update CSV Files</button>
+            </div>
+        </form>
     </div>
 
     <!-- Bootstrap JS and dependencies -->

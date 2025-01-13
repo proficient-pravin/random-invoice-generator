@@ -6,9 +6,8 @@ namespace App\Http\Controllers;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use ZipArchive;
 use Illuminate\Support\Facades\File;
-
+use ZipArchive;
 
 class InvoiceGenerationController extends Controller
 {
@@ -22,10 +21,37 @@ class InvoiceGenerationController extends Controller
         //     'startInvoiceNumber' => $startInvoiceNumber
         // ]);
         return view('invoice_form', [
-            'startInvoiceNumber' => $startInvoiceNumber
+            'startInvoiceNumber' => $startInvoiceNumber,
         ]);
     }
 
+    public function updateCsvFiles(Request $request)
+    {
+        $request->validate([
+            'product_csv' => 'file|mimes:csv,txt|max:2048',
+            'customer_csv' => 'file|mimes:csv,txt|max:2048',
+        ]);
+
+        try {
+            // Define the file paths in the public folder
+            $productCsvPath = public_path('products.csv');
+            $customerCsvPath = public_path('customers.csv');
+
+            // Handle the product CSV upload
+            if ($request->hasFile('product_csv')) {
+                $request->file('product_csv')->move(public_path(), 'products.csv');
+            }
+
+            // Handle the customer CSV upload
+            if ($request->hasFile('customer_csv')) {
+                $request->file('customer_csv')->move(public_path(), 'customers.csv');
+            }
+
+            return redirect()->back()->with('success', 'CSV files have been successfully updated.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'An error occurred while updating the files.']);
+        }
+    }
     public function generateInvoices(Request $request)
     {
         set_time_limit(0);
@@ -40,8 +66,6 @@ class InvoiceGenerationController extends Controller
             'total_amount' => 'required',
         ]);
 
-
-
         $totalInvoiceAmount = $request->total_amount;
         $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
         $invoiceSequenceStartFrom = $request->start_invoice_number;
@@ -52,12 +76,12 @@ class InvoiceGenerationController extends Controller
         //     $invoiceSequenceStartFrom
         // );
 
-        if(empty(request()->num_invoices)){
+        if (empty(request()->num_invoices)) {
             $invoices = $this->generateInvoiceDataV2(
                 floatval($totalInvoiceAmount),
                 $invoiceSequenceStartFrom
             );
-        }else{
+        } else {
             $invoices = $this->generateInvoiceData(
                 floatval($totalInvoiceAmount),
                 $totalNumberOfInvoiceToBeGenerated,
@@ -65,19 +89,19 @@ class InvoiceGenerationController extends Controller
             );
         }
 
-         // Delete existing ZIP files in the directory
+        // Delete existing ZIP files in the directory
         $zipFiles = public_path('*.zip');
         $existingZipFiles = File::glob($zipFiles);
         foreach ($existingZipFiles as $file) {
             File::delete($file); // Delete each file
         }
 
-        Cache::put('start_invoice_number',  request()->start_invoice_number + count($invoices) + 1);
+        Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices) + 1);
 
         // Calculate the total amount of generated invoices
-        $totalGeneratedAmount = str_replace(",","",array_sum(array_column($invoices, 'total')));
+        $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
         return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
-        
+
         $invoice = collect($invoices[0]);
         // Pass data to the Blade view for PDF generation
         $pdf = Pdf::loadView('invoice_template_final', compact('invoice'))->setPaper([0, 0, 612, 792], 'portrait');
@@ -96,27 +120,27 @@ class InvoiceGenerationController extends Controller
         $remainingAmount = $targetAmount;
         $usedProducts = [];
         $numberOfItems = rand(1, 2);
-    
+
         for ($i = 0; $i < $numberOfItems; $i++) {
             $isLastItem = ($i == $numberOfItems - 1);
-    
+
             do {
                 $product = $this->getRandomProduct();
             } while (
                 in_array($product['ItemName'], $usedProducts) ||
                 floatval($product['SalesUnitPrice']) <= 0
             );
-    
+
             $usedProducts[] = $product['ItemName'];
-    
+
             $unitPrice = floatval($product['SalesUnitPrice']);
             $quantity = $isLastItem
-                ? max(1, min(4, ceil($remainingAmount / $unitPrice)))
-                : rand(1, 4);
-    
+            ? max(1, min(4, ceil($remainingAmount / $unitPrice)))
+            : rand(1, 4);
+
             $amount = round($quantity * $unitPrice, 2);
             $tax = round($amount * ($taxPercentage / 100), 2);
-    
+
             $items[] = [
                 'name' => $product['ItemName'],
                 'description' => $product['PurchasesDescription'],
@@ -126,10 +150,10 @@ class InvoiceGenerationController extends Controller
                 'tax_percentage' => $taxPercentage,
                 'amount' => number_format($amount, 2, '.', ','),
             ];
-    
+
             $remainingAmount = max(0, $remainingAmount - $amount);
         }
-    
+
         return $items;
     }
 
@@ -141,16 +165,16 @@ class InvoiceGenerationController extends Controller
         if ($remainingCount <= 1) {
             return round($remainingTotal, 2); // Last invoice takes the remaining amount
         }
-    
+
         // Calculate bounds with safeguards
         $minAmount = max(0.01, $averageAmount * 0.9); // Minimum cannot be less than 0.01
         $maxAmount = min($averageAmount * 1.1, $remainingTotal - ($remainingCount - 1) * 0.01);
-    
+
         // Ensure $maxAmount is not less than $minAmount
         if ($maxAmount < $minAmount) {
             $maxAmount = $minAmount;
         }
-    
+
         // Generate a random amount within valid bounds
         return round(mt_rand($minAmount * 100, $maxAmount * 100) / 100, 2);
     }
@@ -193,7 +217,7 @@ class InvoiceGenerationController extends Controller
             $invoices[] = [
                  ...$customer,
                 'invoice_number' => $invoiceSequenceStartFrom + $i,
-                'invoice_date' => $this->getRandomDate($totalNumberOfInvoiceToBeGenerated,$i),
+                'invoice_date' => $this->getRandomDate($totalNumberOfInvoiceToBeGenerated, $i),
                 'invoice_items' => $invoiceItems,
                 'subtotal' => number_format($subtotal, 2, '.', ','),
                 'total_tax' => number_format($totalTax, 2, '.', ','),
@@ -214,14 +238,14 @@ class InvoiceGenerationController extends Controller
         $invoices = [];
         $remainingAmount = $totalInvoiceAmount;
         $totalGeneratedAmount = 0; // Track the total generated amount
-    
-        $i  = 0;
+
+        $i = 0;
         while ($remainingAmount > 0) {
             // Random customer and product for each invoice
             $customer = $this->getRandomCustomer();
             $product = $this->getRandomProduct();
             $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
-    
+
             // Generate invoice items
             $invoiceItems = $this->generateInvoiceItems(
                 $remainingAmount,
@@ -230,20 +254,20 @@ class InvoiceGenerationController extends Controller
                 floatval($product['SalesUnitPrice']),
                 floatval($taxPercentage)
             );
-    
+
             $subtotal = array_sum(array_column($invoiceItems, 'amount'));
             $totalTax = array_sum(array_column($invoiceItems, 'tax'));
-    
+
             // Calculate total for the current invoice
             $currentInvoiceAmount = round($subtotal + $totalTax, 2);
-    
+
             // Update total generated amount and remaining amount
             $totalGeneratedAmount += $currentInvoiceAmount;
             $remainingAmount = max(0, $totalInvoiceAmount - $totalGeneratedAmount);
-    
+
             // Add invoice to the list
             $invoices[] = [
-                ...$customer,
+                 ...$customer,
                 'invoice_number' => $invoiceSequenceStartFrom++,
                 'invoice_date' => $this->getRandomDate($totalInvoiceAmount, $i),
                 'invoice_items' => $invoiceItems,
@@ -253,7 +277,7 @@ class InvoiceGenerationController extends Controller
             ];
             $i++;
         }
-    
+
         return $invoices;
     }
 
@@ -263,43 +287,41 @@ class InvoiceGenerationController extends Controller
     ): string {
         $startDate = strtotime(request()->start_date);
         $endDate = strtotime(request()->end_date);
-    
+
         if (!$startDate || !$endDate) {
             return null;
         }
-    
+
         // Calculate the total number of days in the range
         $totalDays = floor(($endDate - $startDate) / (60 * 60 * 24)) + 1;
         if ($totalDays < 1) {
             return null; // Invalid date range
         }
-    
+
         // Calculate how many invoices should be assigned to each day
         $invoicesPerDay = intdiv($totalNumberOfInvoices, $totalDays);
         $remainingInvoices = $totalNumberOfInvoices % $totalDays;
-    
+
         // Determine the index of the day this invoice should fall on
         $dayIndex = intdiv($invoiceIndex, $invoicesPerDay);
         if ($invoiceIndex % $invoicesPerDay < $remainingInvoices) {
             $dayIndex++;
         }
-    
+
         // Calculate the random date based on the index of the day
         $randomDate = date('Y-m-d', strtotime("+$dayIndex days", $startDate));
         return $randomDate;
     }
-    
 
     public function getRandomCustomer(): ?array
     {
-        $customers = $this->csvToArray('Contacts.csv');
+        $customers = $this->csvToArray('customers.csv');
 
         // Filter out customers where index 2, 3, or 4 is empty
         $filtered_customers = array_filter($customers, function ($customer) {
             return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
         });
 
-        dd($filtered_customers);
         $rand = array_rand($filtered_customers);
 
         return [
@@ -335,7 +357,7 @@ class InvoiceGenerationController extends Controller
 
     public function getRandomProduct(): ?array
     {
-        $products = $this->csvToArray('InventoryItems-20250106.csv', ',', true);
+        $products = $this->csvToArray('products.csv', ',', true);
         $filtered_products = array_filter($products, function ($customer) {
             return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
         });
@@ -459,7 +481,7 @@ class InvoiceGenerationController extends Controller
 
         $csvRows = [];
 
-        foreach ($invoices as $invoice){
+        foreach ($invoices as $invoice) {
             foreach ($invoice['invoice_items'] as $item) {
                 $csvRows[] = [
                     '702 Print & Marketing LLC',
