@@ -18,6 +18,9 @@ class InvoiceGenerationController extends Controller
         // return $pdf->stream('invoice-' . time() . '.pdf');
         $startInvoiceNumber = Cache::get('start_invoice_number', 1); // Default to 50 if not found
 
+        return view('developer', [
+            'startInvoiceNumber' => $startInvoiceNumber
+        ]);
         return view('invoice_form', [
             'startInvoiceNumber' => $startInvoiceNumber
         ]);
@@ -296,6 +299,7 @@ class InvoiceGenerationController extends Controller
             return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
         });
 
+        dd($filtered_customers);
         $rand = array_rand($filtered_customers);
 
         return [
