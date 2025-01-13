@@ -31,13 +31,13 @@
                 <!-- Start Invoice Number -->
                 <div class="form-group col-md-6">
                     <label for="start_invoice_number">Start Invoice Number</label>
-                    <input type="number" class="form-control" name="start_invoice_number" required>
+                    <input type="number" class="form-control" name="start_invoice_number" value="{{$startInvoiceNumber}}" required>
                 </div>
 
                 <!-- Number of Invoices -->
                 <div class="form-group col-md-6">
                     <label for="num_invoices">Number of Invoices</label>
-                    <input type="number" class="form-control" name="num_invoices" value="{{$startInvoiceNumber}}" >
+                    <input type="number" class="form-control" name="num_invoices"  >
                 </div>
                 <div class="form-group col-md-6">
                     <!-- Total Amount -->
