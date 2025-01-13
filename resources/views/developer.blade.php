@@ -37,7 +37,7 @@
                 <!-- Number of Invoices -->
                 <div class="form-group col-md-6">
                     <label for="num_invoices">Number of Invoices</label>
-                    <input type="number" class="form-control" name="num_invoices">
+                    <input type="number" class="form-control" name="num_invoices" value="{{$startInvoiceNumber}}" >
                 </div>
                 <div class="form-group col-md-6">
                     <!-- Total Amount -->
