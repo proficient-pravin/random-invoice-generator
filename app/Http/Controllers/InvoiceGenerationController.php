@@ -358,9 +358,15 @@ class InvoiceGenerationController extends Controller
     public function getRandomProduct(): ?array
     {
         $products = $this->csvToArray('products.csv', ',', true);
-        $filtered_products = array_filter($products, function ($customer) {
-            return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
-        });
+        $filtered_products = array_filter(
+            array_map(function ($customer) {
+                $customer['SalesUnitPrice'] = floatval(str_replace(',', '', $customer['SalesUnitPrice']));
+                return $customer;
+            }, $products),
+            function ($customer) {
+                return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
+            }
+        );
         return $products[array_rand($filtered_products)];
     }
 
