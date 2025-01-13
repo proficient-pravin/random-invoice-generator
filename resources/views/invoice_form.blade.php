@@ -10,10 +10,10 @@
 </head>
 
 <body>
-    <div style="display: block; text-align: center; height: auto;">
+    <div style="display: block; text-align: right; height: auto;  mt-5">
         <img src="{{ asset('702logo.png') }}" style="max-height: 83px; max-width: 300px;" alt="Logo">
     </div>
-    <div class=" container mt-5">
+    <div class=" container">
         @if (session('success'))
             <div class="alert alert-success mt-4">
                 {{ session('success') }}
