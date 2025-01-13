@@ -138,6 +138,11 @@ class InvoiceGenerationController extends Controller
             ? max(1, min(4, ceil($remainingAmount / $unitPrice)))
             : rand(1, 4);
 
+            // Adjust the quantity based on the unit price to ensure the total is at least $50
+            while ($unitPrice * $quantity < 50) {
+                $quantity++;
+            }
+
             $amount = round($quantity * $unitPrice, 2);
             $tax = round($amount * ($taxPercentage / 100), 2);
 
