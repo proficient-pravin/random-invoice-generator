@@ -118,7 +118,7 @@ class InvoiceGenerationController extends Controller
                 File::delete($file); // Delete each file
             }
 
-            Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices) + 1);
+            Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices));
 
             // Calculate the total amount of generated invoices
             $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
