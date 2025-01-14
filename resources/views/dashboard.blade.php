@@ -1,0 +1,113 @@
+@extends('layouts.master')
+
+@section('content')
+<div class="container">
+    <!-- Success Message -->
+    @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4" role="alert">
+            {{ session('success') }}
+            <button type="button" class="float-right text-lg text-green-700 hover:text-green-900" onclick="this.parentElement.style.display='none';">&times;</button>
+        </div>
+    @endif
+
+    <!-- Error Messages -->
+    @if ($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
+            <ul class="list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <!-- Invoice Generation Section -->
+    <div class="bg-white shadow rounded mt-8">
+        <div class="bg-gray-800 text-white text-center py-4 rounded-t">
+            <h4 class="text-lg font-semibold">Generate Invoices</h4>
+        </div>
+        <div class="p-6">
+            <form method="POST" action="{{ route('generate.invoices') }}" id="invoiceForm">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Start Date -->
+                    <div>
+                        <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                        <input type="date" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="start_date" required>
+                    </div>
+
+                    <!-- End Date -->
+                    <div>
+                        <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+                        <input type="date" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="end_date" required>
+                    </div>
+
+                    <!-- Start Invoice Number -->
+                    <div>
+                        <label for="start_invoice_number" class="block text-sm font-medium text-gray-700">Start Invoice Number</label>
+                        <input type="number" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="start_invoice_number" value="{{ $startInvoiceNumber }}" required>
+                    </div>
+
+                    <!-- Number of Invoices -->
+                    <div>
+                        <label for="num_invoices" class="block text-sm font-medium text-gray-700">Number of Invoices</label>
+                        <input type="number" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="num_invoices">
+                    </div>
+
+                    <!-- Tax Percentage -->
+                    <div>
+                        <label for="tax_percentage" class="block text-sm font-medium text-gray-700">Tax Percentage</label>
+                        <input type="number" step="0.01" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="tax_percentage" required>
+                    </div>
+
+                    <!-- Total Amount -->
+                    <div>
+                        <label for="total_amount" class="block text-sm font-medium text-gray-700">Total Amount</label>
+                        <input type="number" step="0.01" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="total_amount" required>
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <!-- Submit Button -->
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 focus:outline-none">Generate Invoices</button>
+                </div>
+            </form>
+
+            <!-- Loader -->
+            <div id="loader" class="text-center mt-4 hidden">
+                <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSV Update Section -->
+    <div class="bg-white shadow rounded mt-8">
+        <div class="bg-gray-800 text-white text-center py-4 rounded-t">
+            <h4 class="text-lg font-semibold">Update Product and Customer CSV</h4>
+        </div>
+        <div class="p-6">
+            <form method="POST" action="{{ route('update.csv') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Upload Product CSV -->
+                    <div>
+                        <label for="product_csv" class="block text-sm font-medium text-gray-700">Upload Product CSV</label>
+                        <input type="file" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="product_csv" accept=".csv">
+                    </div>
+
+                    <!-- Upload Customer CSV -->
+                    <div>
+                        <label for="customer_csv" class="block text-sm font-medium text-gray-700">Upload Customer CSV</label>
+                        <input type="file" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="customer_csv" accept=".csv">
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <!-- Submit Button -->
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700 focus:outline-none">Update CSV Files</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

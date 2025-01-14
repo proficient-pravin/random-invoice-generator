@@ -20,7 +20,7 @@ class InvoiceGenerationController extends Controller
         // return view('developer', [
         //     'startInvoiceNumber' => $startInvoiceNumber
         // ]);
-        return view('invoice_form', [
+        return view('dashboard', [
             'startInvoiceNumber' => $startInvoiceNumber,
         ]);
     }
@@ -372,6 +372,7 @@ class InvoiceGenerationController extends Controller
                 return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
             }
         );
+        dd($filtered_products);
         return $products[array_rand($filtered_products)];
     }
 
