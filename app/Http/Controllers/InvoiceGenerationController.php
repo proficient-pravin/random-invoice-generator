@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 // use Maatwebsite\Excel\Facades\Excel;
+
+use App\Models\Customer;
+use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +14,21 @@ use ZipArchive;
 
 class InvoiceGenerationController extends Controller
 {
+
+    // Declare global properties in the controller
+    protected $allCustomers;
+    protected $allProducts;
+
+    /**
+     * Constructor to initialize data.
+     */
+    public function __construct()
+    {
+        // Load the customers and products once in the constructor
+        $this->allCustomers = Customer::all()->toArray();
+        $this->allProducts = Product::all()->toArray();
+    }
+
     public function showForm()
     {
         // $pdf = Pdf::loadView('invoice_template_final2');
@@ -101,7 +119,7 @@ class InvoiceGenerationController extends Controller
         // Calculate the total amount of generated invoices
         $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
         return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
-
+        
         $invoice = collect($invoices[0]);
         // Pass data to the Blade view for PDF generation
         $pdf = Pdf::loadView('invoice_template_final', compact('invoice'))->setPaper([0, 0, 612, 792], 'portrait');
@@ -127,13 +145,13 @@ class InvoiceGenerationController extends Controller
             do {
                 $product = $this->getRandomProduct();
             } while (
-                in_array($product['ItemName'], $usedProducts) ||
-                floatval($product['SalesUnitPrice']) <= 0
+                in_array($product['product_name'], $usedProducts) ||
+                floatval($product['unit_price']) <= 0
             );
 
-            $usedProducts[] = $product['ItemName'];
+            $usedProducts[] = $product['product_name'];
 
-            $unitPrice = floatval($product['SalesUnitPrice']);
+            $unitPrice = floatval($product['unit_price']);
             $quantity = $isLastItem
             ? max(1, min(4, ceil($remainingAmount / $unitPrice)))
             : rand(1, 4);
@@ -147,8 +165,8 @@ class InvoiceGenerationController extends Controller
             $tax = round($amount * ($taxPercentage / 100), 2);
 
             $items[] = [
-                'name' => $product['ItemName'],
-                'description' => $product['PurchasesDescription'],
+                'name' => $product['product_name'],
+                'description' => $product['product_name'],
                 'quantity' => number_format($quantity, 2, '.', ','),
                 'unit_price' => number_format($unitPrice, 2, '.', ','),
                 'tax' => number_format($tax, 2, '.', ','),
@@ -205,14 +223,13 @@ class InvoiceGenerationController extends Controller
             // Random customer and product for each invoice
             $customer = $this->getRandomCustomer();
             $product = $this->getRandomProduct();
-            // $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
             $taxPercentage = request()->tax_percentage;
 
             $invoiceItems = $this->generateInvoiceItems(
                 $currentInvoiceAmount,
-                $product['ItemName'],
-                $product['PurchasesDescription'],
-                floatval($product['SalesUnitPrice']),
+                $product['product_name'],
+                $product['product_name'],
+                floatval($product['unit_price']),
                 floatval($taxPercentage)
             );
 
@@ -249,14 +266,13 @@ class InvoiceGenerationController extends Controller
             // Random customer and product for each invoice
             $customer = $this->getRandomCustomer();
             $product = $this->getRandomProduct();
-            $taxPercentage = $product['SalesTaxRate'] == 'Tax on Sales' ? (request()->tax_percentage ?? 10) : 0;
-
+            $taxPercentage = request()->tax_percentage;
             // Generate invoice items
             $invoiceItems = $this->generateInvoiceItems(
                 $remainingAmount,
-                $product['ItemName'],
-                $product['PurchasesDescription'],
-                floatval($product['SalesUnitPrice']),
+                $product['product_name'],
+                $product['product_name'],
+                floatval($product['unit_price']),
                 floatval($taxPercentage)
             );
 
@@ -320,60 +336,87 @@ class InvoiceGenerationController extends Controller
 
     public function getRandomCustomer(): ?array
     {
-        $customers = $this->csvToArray('customers.csv');
+        // $customers = $this->csvToArray('customers.csv');
 
-        // Filter out customers where index 2, 3, or 4 is empty
-        $filtered_customers = array_filter($customers, function ($customer) {
-            return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
-        });
+        // // Filter out customers where index 2, 3, or 4 is empty
+        // $filtered_customers = array_filter($customers, function ($customer) {
+        //     return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
+        // });
 
+        // $rand = array_rand($filtered_customers);
+
+        // return [
+        //     'email' => $filtered_customers[$rand][2] ?? '',
+        //     'first_name' => $filtered_customers[$rand][3] ?? '',
+        //     'last_name' => $filtered_customers[$rand][4] ?? '',
+        //     'full_name' => "{$filtered_customers[$rand][3]} {$filtered_customers[$rand][4]}",
+        //     'po_attention_to' => $filtered_customers[$rand][5] ?? '',
+        //     'po_address_line1' => $filtered_customers[$rand][6] ?? '',
+        //     'po_address_line2' => $filtered_customers[$rand][7] ?? '',
+        //     'po_address_line3' => $filtered_customers[$rand][8] ?? '',
+        //     'po_address_line4' => $filtered_customers[$rand][9] ?? '',
+        //     'po_city' => $filtered_customers[$rand][10] ?? '',
+        //     'po_region' => $filtered_customers[$rand][11] ?? '',
+        //     'po_zip_code' => $filtered_customers[$rand][12] ?? '',
+        //     'po_country' => $filtered_customers[$rand][13] ?? '',
+        //     'sa_attention_to' => $filtered_customers[$rand][14] ?? '',
+        //     'sa_address_line1' => $filtered_customers[$rand][15] ?? '',
+        //     'sa_address_line2' => $filtered_customers[$rand][16] ?? '',
+        //     'sa_address_line3' => $filtered_customers[$rand][17] ?? '',
+        //     'sa_address_line4' => $filtered_customers[$rand][18] ?? '',
+        //     'sa_city' => $filtered_customers[$rand][19] ?? '',
+        //     'sa_region' => $filtered_customers[$rand][20] ?? '',
+        //     'sa_zip_code' => $filtered_customers[$rand][21] ?? '',
+        //     'sa_country' => $filtered_customers[$rand][22] ?? '',
+        // ];
+
+        // Assuming $this->allCustomers is an array of customer data
+        $filtered_customers = $this->allCustomers;
         $rand = array_rand($filtered_customers);
-
+        $selectedCustomer = $filtered_customers[$rand];
         return [
-            'account_number' => $filtered_customers[$rand][1] ?? '',
-            'email' => $filtered_customers[$rand][2] ?? '',
-            'first_name' => $filtered_customers[$rand][3] ?? '',
-            'last_name' => $filtered_customers[$rand][4] ?? '',
-            'full_name' => "{$filtered_customers[$rand][3]} {$filtered_customers[$rand][4]}",
-            'po_attention_to' => $filtered_customers[$rand][5] ?? '',
-            'po_address_line1' => $filtered_customers[$rand][6] ?? '',
-            'po_address_line2' => $filtered_customers[$rand][7] ?? '',
-            'po_address_line3' => $filtered_customers[$rand][8] ?? '',
-            'po_address_line4' => $filtered_customers[$rand][9] ?? '',
-            'po_city' => $filtered_customers[$rand][10] ?? '',
-            'po_region' => $filtered_customers[$rand][11] ?? '',
-            'po_zip_code' => $filtered_customers[$rand][12] ?? '',
-            'po_country' => $filtered_customers[$rand][13] ?? '',
-            'sa_attention_to' => $filtered_customers[$rand][14] ?? '',
-            'sa_address_line1' => $filtered_customers[$rand][15] ?? '',
-            'sa_address_line2' => $filtered_customers[$rand][16] ?? '',
-            'sa_address_line3' => $filtered_customers[$rand][17] ?? '',
-            'sa_address_line4' => $filtered_customers[$rand][18] ?? '',
-            'sa_city' => $filtered_customers[$rand][19] ?? '',
-            'sa_region' => $filtered_customers[$rand][20] ?? '',
-            'sa_zip_code' => $filtered_customers[$rand][21] ?? '',
-            'sa_country' => $filtered_customers[$rand][22] ?? '',
+            'email' => $selectedCustomer['email'] ?? '',
+            'first_name' => $selectedCustomer['first_name'] ?? '',
+            'last_name' => $selectedCustomer['last_name'] ?? '',
+            'full_name' => "{$selectedCustomer['first_name']} {$selectedCustomer['last_name']}",
+            'po_attention_to' => "{$selectedCustomer['first_name']} {$selectedCustomer['last_name']}",
+            'po_address_line1' => $selectedCustomer['po_address_line1'] ?? '',
+            'po_address_line2' => $selectedCustomer['po_address_line2'] ?? '',
+            'po_address_line3' => $selectedCustomer['po_address_line3'] ?? '',
+            'po_address_line4' => $selectedCustomer['po_address_line4'] ?? '',
+            'po_city' => $selectedCustomer['po_city'] ?? '',
+            'po_region' => $selectedCustomer['po_region'] ?? '',
+            'po_zip_code' => $selectedCustomer['po_zip_code'] ?? '',
+            'po_country' => $selectedCustomer['po_country'] ?? '',
+            'sa_attention_to' => $selectedCustomer['sa_attention_to'] ?? '',
+            'sa_address_line1' => $selectedCustomer['sa_address_line1'] ?? '',
+            'sa_address_line2' => $selectedCustomer['sa_address_line2'] ?? '',
+            'sa_address_line3' => $selectedCustomer['sa_address_line3'] ?? '',
+            'sa_address_line4' => $selectedCustomer['sa_address_line4'] ?? '',
+            'sa_city' => $selectedCustomer['sa_city'] ?? '',
+            'sa_region' => $selectedCustomer['sa_region'] ?? '',
+            'sa_zip_code' => $selectedCustomer['sa_zip_code'] ?? '',
+            'sa_country' => $selectedCustomer['sa_country'] ?? '',
         ];
-
-        $first_name = $filtered_customers[$rand][3] ?? null;
-        $last_name = $filtered_customers[$rand][4] ?? null;
-        $email = $filtered_customers[$rand][2] ?? null;
     }
 
     public function getRandomProduct(): ?array
     {
-        $products = $this->csvToArray('products.csv', ',', true);
-        $filtered_products = array_filter(
-            array_map(function ($customer) {
-                $customer['SalesUnitPrice'] = floatval(str_replace(',', '', $customer['SalesUnitPrice']));
-                return $customer;
-            }, $products),
-            function ($customer) {
-                return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
-            }
-        );
-        dd($filtered_products);
-        return $products[array_rand($filtered_products)];
+        // $products = $this->csvToArray('products.csv', ',', true);
+        // $filtered_products = array_filter(
+        //     array_map(function ($customer) {
+        //         $customer['SalesUnitPrice'] = floatval(str_replace(',', '', $customer['SalesUnitPrice']));
+        //         return $customer;
+        //     }, $products),
+        //     function ($customer) {
+        //         return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
+        //     }
+        // );
+        // return $products[array_rand($filtered_products)];
+
+        $filtered_products = $this->allProducts;
+        $rand = array_rand($filtered_products);
+        return $filtered_products[$rand];
     }
 
     /**

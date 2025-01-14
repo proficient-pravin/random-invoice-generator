@@ -2,8 +2,14 @@
 
 @section('content')
 <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-semibold text-gray-700 mb-6">Edit Customer</h1>
-
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-700 mb-4 md:mb-0">Edit Cutomer</h1>
+        <div class="flex flex-col md:flex-row space-y-4 md:space-x-4 md:space-y-0">
+            <a href="{{ route('customers.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Back
+            </a>
+        </div>
+    </div>
     <form action="{{ route('customers.update', $customer->id) }}" method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         @csrf
         @method('PUT')

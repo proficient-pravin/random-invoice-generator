@@ -4,28 +4,27 @@
 <div class="container mx-auto p-6">
     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
         <!-- Title on the left -->
-        <h1 class="text-2xl font-semibold text-gray-700 mb-4 md:mb-0">Customers</h1>
+        <h1 class="text-2xl font-semibold text-gray-700 mb-4 md:mb-0">Products</h1>
     
         <!-- Add Product Button and Back Button on the right -->
         <div class="flex flex-col md:flex-row space-y-4 md:space-x-4 md:space-y-0">
-            <a href="{{ route('customers.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Add Customer
+            <a href="{{ route('products.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Add Product
             </a>
             <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                 Back
             </a>
         </div>
-    </div>
+    </div>    
 
-    <!-- Customer Table -->
+    <!-- Product Table -->
     <div class="overflow-x-auto relative shadow-md sm:rounded-lg bg-white rounded-lg">
-        <table id="customersTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <table id="productsTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
                     <th scope="col" class="px-6 py-3">ID</th>
-                    <th scope="col" class="px-6 py-3">Email</th>
-                    <th scope="col" class="px-6 py-3">First Name</th>
-                    <th scope="col" class="px-6 py-3">Last Name</th>
+                    <th scope="col" class="px-6 py-3">Product Name</th>
+                    <th scope="col" class="px-6 py-3">Unit Price</th>
                     <th scope="col" class="px-6 py-3">Actions</th>
                 </tr>
             </thead>
@@ -49,15 +48,14 @@
 
 <script>
     $(document).ready(function () {
-        $('#customersTable').DataTable({
+        $('#productsTable').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "{{ route('customers.index') }}",
+            ajax: "{{ route('products.index') }}",
             columns: [
                 { data: 'id', name: 'id' },
-                { data: 'email', name: 'email' },
-                { data: 'first_name', name: 'first_name' },
-                { data: 'last_name', name: 'last_name' },
+                { data: 'product_name', name: 'product_name' },
+                { data: 'unit_price', name: 'unit_price' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             lengthChange: false,  // Hides the "per page" button

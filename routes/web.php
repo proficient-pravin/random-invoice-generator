@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 // });
 
 use App\Http\Controllers\InvoiceGenerationController;
+use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\ProfileController;
 
 // Route::get('/generate-invoices', [InvoiceGenerationController::class, 'showForm']);
@@ -31,6 +32,14 @@ Route::middleware('auth')->prefix('customers')->name('customers.')->group(functi
     Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->name('edit');
     Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
     Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
+});
+Route::middleware('auth')->prefix('products')->name('products.')->group(function () {
+    Route::get('/', [ProductController::class, 'index'])->name('index');
+    Route::get('/create', [ProductController::class, 'create'])->name('create');
+    Route::post('/store', [ProductController::class, 'store'])->name('store');
+    Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+    Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+    Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 });
 
 require __DIR__.'/auth.php';
