@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 // use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Product;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use ZipArchive;
 
@@ -75,56 +77,63 @@ class InvoiceGenerationController extends Controller
         set_time_limit(0);
         ini_set('memory_limit', '-1'); // Unlimited memory
 
-        // Validate user input
-        $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'start_invoice_number' => 'required|integer',
-            'num_invoices' => 'nullable|integer|max:500',
-            'total_amount' => 'required',
-        ]);
+        try {
 
-        $totalInvoiceAmount = $request->total_amount;
-        $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
-        $invoiceSequenceStartFrom = $request->start_invoice_number;
+            // Validate user input
+            $validated = $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date',
+                'start_invoice_number' => 'required|integer',
+                'num_invoices' => 'nullable|integer|max:500',
+                'total_amount' => 'required',
+            ]);
 
-        // $invoices = $this->generateInvoiceData(
-        //     floatval($totalInvoiceAmount),
-        //     $totalNumberOfInvoiceToBeGenerated,
-        //     $invoiceSequenceStartFrom
-        // );
+            $totalInvoiceAmount = $request->total_amount;
+            $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
+            $invoiceSequenceStartFrom = $request->start_invoice_number;
 
-        if (empty(request()->num_invoices)) {
-            $invoices = $this->generateInvoiceDataV2(
-                floatval($totalInvoiceAmount),
-                $invoiceSequenceStartFrom
-            );
-        } else {
-            $invoices = $this->generateInvoiceData(
-                floatval($totalInvoiceAmount),
-                $totalNumberOfInvoiceToBeGenerated,
-                $invoiceSequenceStartFrom
-            );
+            // $invoices = $this->generateInvoiceData(
+            //     floatval($totalInvoiceAmount),
+            //     $totalNumberOfInvoiceToBeGenerated,
+            //     $invoiceSequenceStartFrom
+            // );
+
+            if (empty(request()->num_invoices)) {
+                $invoices = $this->generateInvoiceDataV2(
+                    floatval($totalInvoiceAmount),
+                    $invoiceSequenceStartFrom
+                );
+            } else {
+                $invoices = $this->generateInvoiceData(
+                    floatval($totalInvoiceAmount),
+                    $totalNumberOfInvoiceToBeGenerated,
+                    $invoiceSequenceStartFrom
+                );
+            }
+
+            // Delete existing ZIP files in the directory
+            $zipFiles = public_path('*.zip');
+            $existingZipFiles = File::glob($zipFiles);
+            foreach ($existingZipFiles as $file) {
+                File::delete($file); // Delete each file
+            }
+
+            Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices) + 1);
+
+            // Calculate the total amount of generated invoices
+            $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
+            $this->storeInvoices($invoices);
+            // return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
+
+            $invoice = collect($invoices[0]);
+            // Pass data to the Blade view for PDF generation
+            $pdf = Pdf::loadView('invoice_template_final', compact('invoice'))->setPaper([0, 0, 612, 792], 'portrait');
+
+            return $pdf->stream('invoice-' . time() . '.pdf');
+
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Delete existing ZIP files in the directory
-        $zipFiles = public_path('*.zip');
-        $existingZipFiles = File::glob($zipFiles);
-        foreach ($existingZipFiles as $file) {
-            File::delete($file); // Delete each file
-        }
-
-        Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices) + 1);
-
-        // Calculate the total amount of generated invoices
-        $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
-        return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
-        
-        $invoice = collect($invoices[0]);
-        // Pass data to the Blade view for PDF generation
-        $pdf = Pdf::loadView('invoice_template_final', compact('invoice'))->setPaper([0, 0, 612, 792], 'portrait');
-
-        return $pdf->stream('invoice-' . time() . '.pdf');
     }
 
     private function generateInvoiceItems(
@@ -374,7 +383,9 @@ class InvoiceGenerationController extends Controller
         $filtered_customers = $this->allCustomers;
         $rand = array_rand($filtered_customers);
         $selectedCustomer = $filtered_customers[$rand];
+
         return [
+            'customer_id' => $selectedCustomer['id'] ?? '',
             'email' => $selectedCustomer['email'] ?? '',
             'first_name' => $selectedCustomer['first_name'] ?? '',
             'last_name' => $selectedCustomer['last_name'] ?? '',
@@ -578,4 +589,43 @@ class InvoiceGenerationController extends Controller
         return $csvContent;
     }
 
+    /**
+     * Store the invoice and its associated items.
+     */
+    public function storeInvoices($invoices)
+    {
+        // Begin database transaction to ensure atomicity
+        DB::beginTransaction();
+
+        try {
+
+            foreach ($invoices as $_invoices){
+                // Create the invoice
+                $invoice = Invoice::create([
+                    'customer_id' => $_invoices['customer_id'],
+                    'invoice_number' => $_invoices['invoice_number'],
+                    'invoice_date' => $_invoices['invoice_date'],
+                ]);
+    
+                // Create invoice items and associate them with the created invoice
+                foreach ($_invoices['invoice_items'] as $itemData) {
+                    $invoice->items()->create([
+                        'name' => $itemData['name'],
+                        'description' => $itemData['description'],
+                        'quantity' => floatval(str_replace(",","",$itemData['quantity'])),
+                        'unit_price' => floatval(str_replace(",","",$itemData['unit_price'])),
+                        'tax' => floatval(str_replace(",","",$itemData['tax'])),
+                        'tax_percentage' => floatval(str_replace(",","",$itemData['tax_percentage'])),
+                        'amount' => floatval(str_replace(",","",$itemData['amount'])),
+                    ]);
+                }
+            }
+
+            // Commit the transaction
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Error creating invoice: ' . $e->getMessage());
+        }
+    }
 }

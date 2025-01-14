@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Customer\CustomerController;
+use App\Http\Controllers\Invoice\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceGenerationController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Invoice;
 
 // Route::get('/generate-invoices', [InvoiceGenerationController::class, 'showForm']);
 Route::post('/generate-invoices', [InvoiceGenerationController::class, 'generateInvoices'])->name('generate.invoices');
@@ -40,6 +42,9 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
     Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
     Route::put('/{product}', [ProductController::class, 'update'])->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+});
+Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {
+    Route::get('/', [InvoiceController::class, 'index'])->name('index');
 });
 
 require __DIR__.'/auth.php';
