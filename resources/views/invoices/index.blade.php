@@ -19,7 +19,8 @@
         <table id="invoicesTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>  <!-- Align Invoice Number to the left -->
+                    <th scope="col" class="px-6 py-3 text-left" style="text-align: left !important;">Invoice Number</th>  <!-- Align Invoice Number to the left -->
+                    <th scope="col" class="px-6 py-3 text-left">Date</th>        <!-- Align Customer to the left -->
                     <th scope="col" class="px-6 py-3 text-left">Customer</th>        <!-- Align Customer to the left -->
                     <th scope="col" class="px-6 py-3 text-left">Total</th>          <!-- Align Total to the left -->
                     <th scope="col" class="px-6 py-3 text-left">Items</th>         <!-- Align Actions to the left -->
@@ -52,7 +53,8 @@
             serverSide: true,
             ajax: "{{ route('invoices.index') }}",  // Adjust route if necessary
             columns: [
-                { data: 'invoice_number', name: 'invoice_number' },
+                { data: 'invoice_number', name: 'invoice_number', className: 'text-left' },
+                { data: 'invoice_date', name: 'invoice_date', className: 'text-left' },
                 { data: 'customer_name', name: 'customer_name' },
                 { data: 'total', name: 'total' },
                 { data: null, name: 'actions', defaultContent: '' } // Empty column for actions (icons)
@@ -61,9 +63,9 @@
             responsive: true,  // Makes the table responsive
             rowCallback: function (row, data) {
                 var invoiceItems = data.items;
-
+                $(row).find('td:eq(0)').removeClass('dt-type-numeric');
                 // Add an icon for expand/collapse
-                $(row).find('td:eq(3)').html('<i class="fas fa-plus-circle"></i>');
+                $(row).find('td:eq(4)').html('<i class="fas fa-plus-circle"></i>');
 
                 $(row).on('click', function () {
                     var icon = $(this).find('td:eq(3) i');
