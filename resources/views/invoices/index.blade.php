@@ -24,6 +24,7 @@
                     <th scope="col" class="px-6 py-3 text-left">Customer</th>        <!-- Align Customer to the left -->
                     <th scope="col" class="px-6 py-3 text-left">Total</th>          <!-- Align Total to the left -->
                     <th scope="col" class="px-6 py-3 text-left">Items</th>         <!-- Align Actions to the left -->
+                    <th scope="col" class="px-6 py-3 text-left">Action</th>         <!-- Align Actions to the left -->
                 </tr>
             </thead>
             <tbody>
@@ -57,7 +58,8 @@
                 { data: 'invoice_date', name: 'invoice_date', className: 'text-left' },
                 { data: 'customer_name', name: 'customer_name' },
                 { data: 'total', name: 'total' },
-                { data: null, name: 'actions', defaultContent: '' } // Empty column for actions (icons)
+                { data: null, name: 'items', defaultContent: '' } ,// Empty column for actions (icons)
+                { data: 'actions', name: 'actions' } // Empty column for actions (icons)
             ],
             lengthChange: false,  // Hides the "per page" button
             responsive: true,  // Makes the table responsive

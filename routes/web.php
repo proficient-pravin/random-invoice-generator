@@ -48,6 +48,7 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
 
 Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/', [InvoiceController::class, 'index'])->name('index');
+    Route::get('/{invoice}/download', [InvoiceController::class, 'download'])->name('download');
 });
 
 require __DIR__.'/auth.php';

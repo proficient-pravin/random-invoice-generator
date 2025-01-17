@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class InvoiceController extends Controller
 {
@@ -39,6 +40,9 @@ class InvoiceController extends Controller
                         ];
                     });
                 })
+                ->addColumn('actions', function ($customer) {
+                    return view('invoices.actions', compact('customer'));
+                })
                 ->make(true);
         }
         
@@ -46,4 +50,36 @@ class InvoiceController extends Controller
         return view('invoices.index');
     }
 
+     /**
+     * Show the form for download the specified invoice.
+     *
+     * @param \App\Models\Invoice $invoice
+     */
+    public function download(Invoice $invoice)
+    {
+        $invoice = $invoice->load('items','customer')->toArray();
+
+
+        $subtotal = array_sum(array_column($invoice['items'], 'amount'));
+        $totalTax = array_sum(array_column($invoice['items'], 'tax'));
+
+        $transformed = array_merge($invoice['customer'], [
+            "invoice_number" => $invoice['invoice_number'],
+            "customer_id" => $invoice['customer_id'],
+            "invoice_date" => $invoice['invoice_date'],
+            "created_at" => $invoice['created_at'],
+            "updated_at" => $invoice['updated_at'],
+            "invoice_items" => $invoice['items'], // Renaming items to invoice_items
+            'subtotal' => number_format($subtotal, 2, '.', ','),
+            'total_tax' => number_format($totalTax, 2, '.', ','),
+            'total' => number_format(($subtotal + $totalTax), 2, '.', ','),
+        ]);
+        
+        // Generate PDF for the invoice
+        $pdf = PDF::loadView('invoice_template_final', ['invoice' => $transformed]);
+        $pdfPath = 'pdf_invoice_' . ($transformed['invoice_number']) . '.pdf';
+
+         return $pdf->download( $pdfPath );
+
+    }
 }
