@@ -8,15 +8,15 @@
     
         <!-- Buttons on the right -->
         <div class="flex flex-col md:flex-row space-y-4 md:space-x-4 md:space-y-0">
+            <button id="importCustomerButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                Import Customers
+            </button>
             <a href="{{ route('customers.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Add Customer
             </a>
             <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                 Back
             </a>
-            <button id="importCustomerButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                Import Customers
-            </button>
         </div>
     </div>
 
