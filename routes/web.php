@@ -34,6 +34,7 @@ Route::middleware('auth')->prefix('customers')->name('customers.')->group(functi
     Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->name('edit');
     Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
     Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
+    Route::post('/import', [CustomerController::class, 'import'])->name('import');
 });
 Route::middleware('auth')->prefix('products')->name('products.')->group(function () {
     Route::get('/', [ProductController::class, 'index'])->name('index');
@@ -42,7 +43,9 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
     Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
     Route::put('/{product}', [ProductController::class, 'update'])->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    Route::post('/import', [ProductController::class, 'import'])->name('import');
 });
+
 Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/', [InvoiceController::class, 'index'])->name('index');
 });
