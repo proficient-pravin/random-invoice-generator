@@ -20,28 +20,6 @@
         </div>
     </div>
 
-    <!-- Import Customer Form (Hidden Initially) -->
-    <div id="importCustomerForm" class="hidden bg-white rounded-lg shadow p-6 mb-6">
-        <form action="{{ route('customers.import') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="mb-4">
-                <label for="importFile" class="block text-sm font-medium text-gray-700">Select CSV File</label>
-                <input type="file" name="import_file" id="importFile" accept=".csv" class="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                @error('import_file')
-                    <span class="text-red-500 text-sm">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="flex space-x-4">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Submit
-                </button>
-                <button type="button" id="cancelImportButton" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Cancel
-                </button>
-            </div>
-        </form>
-    </div>
-
     <!-- Customer Table -->
     <div class="overflow-x-auto relative shadow-md sm:rounded-lg bg-white rounded-lg">
         <table id="customersTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -58,6 +36,36 @@
                 <!-- Data will be loaded via Yajra DataTables -->
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Import Customer Modal -->
+<div id="importCustomerModal" class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+        <div class="p-4 border-b">
+            <h2 class="text-lg font-semibold text-gray-700">Import Customers</h2>
+            <button id="closeImportModal" class="text-gray-500 hover:text-gray-700 float-right">×</button>
+        </div>
+        <div class="p-6">
+            <form action="{{ route('customers.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-4">
+                    <label for="importFile" class="block text-sm font-medium text-gray-700">Select CSV File</label>
+                    <input type="file" name="import_file" id="importFile" accept=".csv" class="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    @error('import_file')
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Submit
+                    </button>
+                    <button type="button" id="cancelImportButton" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -89,14 +97,14 @@
             responsive: true,
         });
 
-        // Show import form
+        // Show import modal
         $('#importCustomerButton').click(function () {
-            $('#importCustomerForm').removeClass('hidden');
+            $('#importCustomerModal').removeClass('hidden');
         });
 
-        // Cancel import
-        $('#cancelImportButton').click(function () {
-            $('#importCustomerForm').addClass('hidden');
+        // Hide import modal
+        $('#closeImportModal, #cancelImportButton').click(function () {
+            $('#importCustomerModal').addClass('hidden');
         });
     });
 </script>
