@@ -43,7 +43,7 @@
     <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
         <div class="p-4 border-b">
             <h2 class="text-lg font-semibold text-gray-700">Import Products</h2>
-            <button id="closeImportModal" class="text-gray-500 hover:text-gray-700 float-right">×</button>
+            <button id="closeImportModal" class="hidden text-gray-500 hover:text-gray-700 float-right">×</button>
         </div>
         <div class="p-6">
             <form action="{{ route('products.import') }}" method="POST" enctype="multipart/form-data">
