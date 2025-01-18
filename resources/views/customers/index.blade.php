@@ -9,9 +9,32 @@
                 /* Gridline style */
             }
 
+
+
+            /* Make the table responsive */
             #customersTable {
-                border-collapse: collapse;
+                /* width: 100%; */
+                /* table-layout: auto; */
+                /* Ensure columns resize based on content */
+                /* border-collapse: collapse; */
                 /* Ensure cells are tightly packed */
+            }
+
+            /* Style for table container */
+            .dataTable-container {
+                overflow-x: auto;
+                /* Allow horizontal scrolling when the table exceeds container width */
+            }
+
+            /* Highlight the active (focused) cell */
+            td[contenteditable="true"]:focus {
+                outline: 2px solid #007bff;
+                background-color: #f0f8ff;
+            }
+
+            #customersTable tbody td:hover {
+                background-color: #e8f5ff;
+                cursor: text;
             }
 
             /* Highlight the active (focused) cell */
@@ -40,30 +63,13 @@
                 text-align: center;
             }
 
-            /* Make the table responsive */
-            #customersTable {
-                width: 100%;
-                table-layout: auto;
-                /* Adjust columns automatically */
-            }
 
             /* Adjust padding for cells */
-            #customersTable td,
-            #customersTable th {
-                padding: 8px;
-                text-align: left;
-            }
-
             #customersTable td {
-                padding: 4px;
+                padding: 2px;
                 text-align: left;
             }
 
-            /* Style the table container */
-            .dataTable-container {
-                overflow-x: auto;
-                /* Add horizontal scroll for large tables */
-            }
         </style>
     @endpush
     <div class="container mx-auto p-6">
@@ -106,12 +112,25 @@
             <table id="customersTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-6 py-3">ID</th>
+                        <th scope="col" class="px-6 py-3">ID</th> <!-- Numeric, narrow -->
                         <th scope="col" class="px-6 py-3">Full Name</th>
-                        <th scope="col" class="px-6 py-3">Email</th>
-                        <th scope="col" class="px-6 py-3">Tag</th>
+                        <!-- Text, medium width -->
+                        <th scope="col" class="px-6 py-3">Email</th> <!-- Text, wider -->
+                        <th scope="col" class="px-6 py-3">Tag</th> <!-- Text, small width -->
                         <th scope="col" class="px-6 py-3">Invoice</th>
+                        <!-- Numeric, medium width -->
+                        <th scope="col" class="px-6 py-3">po address line 1</th>
+                        <!-- Address, wide -->
+                        <th scope="col" class="px-6 py-3">po city</th> <!-- Text, medium width -->
+                        <th scope="col" class="px-6 py-3">po zip code</th> <!-- Numeric, narrow -->
+                        <th scope="col" class="px-6 py-3">po country</th> <!-- Text, narrow -->
+                        <th scope="col" class="px-6 py-3">sa address line 1</th>
+                        <!-- Address, wide -->
+                        <th scope="col" class="px-6 py-3">sa city</th> <!-- Text, medium width -->
+                        <th scope="col" class="px-6 py-3">sa zip code</th> <!-- Numeric, narrow -->
+                        <th scope="col" class="px-6 py-3">sa country</th> <!-- Text, narrow -->
                         <th scope="col" class="px-6 py-3">Actions</th>
+                        <!-- Action buttons, medium width -->
                     </tr>
                 </thead>
                 <tbody>
@@ -189,23 +208,68 @@
                 },
                 columns: [{
                         data: 'id',
-                        name: 'id'
+                        name: 'id',
+                        className: 'whitespace-nowrap'
                     },
                     {
                         data: 'full_name',
-                        name: 'full_name'
+                        name: 'full_name',
+                        className: 'whitespace-nowrap'
                     },
                     {
                         data: 'email',
-                        name: 'email'
+                        name: 'email',
+                        className: 'whitespace-nowrap'
                     },
                     {
                         data: 'tag_name',
-                        name: 'tag_name'
+                        name: 'tag_name',
+                        className: 'whitespace-nowrap'
                     },
                     {
                         data: 'total_invoice_amount',
-                        name: 'total_invoice_amount'
+                        name: 'total_invoice_amount',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'po_address_line1',
+                        name: 'po_address_line1',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'po_city',
+                        name: 'po_city',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'po_zip_code',
+                        name: 'po_zip_code',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'po_country',
+                        name: 'po_country',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'sa_address_line1',
+                        name: 'sa_address_line1',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'sa_city',
+                        name: 'sa_city',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'sa_zip_code',
+                        name: 'sa_zip_code',
+                        className: 'whitespace-nowrap'
+                    },
+                    {
+                        data: 'sa_country',
+                        name: 'sa_country',
+                        className: 'whitespace-nowrap'
                     },
                     {
                         data: 'actions',
@@ -217,7 +281,18 @@
                 lengthChange: false,
                 responsive: true,
                 drawCallback: function(settings) {
-                    $('#customersTable tbody td:nth-child(2), #customersTable tbody td:nth-child(3), #customersTable tbody td:nth-child(4)')
+                    $(`#customersTable tbody td:nth-child(2)
+                    , #customersTable tbody td:nth-child(3)
+                    , #customersTable tbody td:nth-child(4)
+                    , #customersTable tbody td:nth-child(6)
+                    , #customersTable tbody td:nth-child(7)
+                    , #customersTable tbody td:nth-child(8)
+                    , #customersTable tbody td:nth-child(9)
+                    , #customersTable tbody td:nth-child(10)
+                    , #customersTable tbody td:nth-child(11)
+                    , #customersTable tbody td:nth-child(12)
+                    , #customersTable tbody td:nth-child(13)
+                    `)
                         .attr('contenteditable', 'true')
                         .each(function() {
                             // Add data attributes to each editable cell for column name and customer ID
@@ -233,6 +308,24 @@
                                 columnName = 'email';
                             } else if (columnIndex === 3) {
                                 columnName = 'tag_id';
+                            } else if (columnIndex === 3) {
+                                columnName = 'tag_id';
+                            } else if (columnIndex === 5) {
+                                columnName = 'po_address_line1';
+                            } else if (columnIndex === 6) {
+                                columnName = 'po_city';
+                            } else if (columnIndex === 7) {
+                                columnName = 'po_zip_code';
+                            } else if (columnIndex === 8) {
+                                columnName = 'po_country';
+                            } else if (columnIndex === 9) {
+                                columnName = 'sa_address_line1';
+                            } else if (columnIndex === 10) {
+                                columnName = 'sa_city';
+                            } else if (columnIndex === 11) {
+                                columnName = 'sa_zip_code';
+                            } else if (columnIndex === 12) {
+                                columnName = 'sa_country';
                             }
 
                             // Get customer ID from the row data (if available in DataTable row data)

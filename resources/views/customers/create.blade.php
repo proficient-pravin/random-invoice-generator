@@ -76,7 +76,7 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
+                    {{-- <div class="mb-4">
                         <label for="po_address_line2" class="block text-gray-700 text-sm font-bold mb-2">Address Line
                             2:</label>
                         <input type="text" name="po_address_line2" id="po_address_line2"
@@ -107,7 +107,7 @@
                         @error('po_address_line4')
                             <p class="text-red-500 text-xs italic">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </div> --}}
 
                     <div class="mb-4">
                         <label for="po_city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
@@ -162,7 +162,7 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
+                    {{-- <div class="mb-4">
                         <label for="sa_address_line2" class="block text-gray-700 text-sm font-bold mb-2">Address Line
                             2:</label>
                         <input type="text" name="sa_address_line2" id="sa_address_line2"
@@ -193,7 +193,7 @@
                         @error('sa_address_line4')
                             <p class="text-red-500 text-xs italic">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </div> --}}
 
                     <div class="mb-4">
                         <label for="sa_city" class="block text-gray-700 text-sm font-bold mb-2">City:</label>
