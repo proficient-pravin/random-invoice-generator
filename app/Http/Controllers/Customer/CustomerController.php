@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -108,14 +109,85 @@ class CustomerController extends Controller
     {
         // Retrieve the customer with additional calculated column and related data
         $customer = Customer::query()
-            ->where('id', $customer->id)                 // Ensure we are working with the correct customer
-            ->with(['tag', 'invoices','invoices.items'])                  // Eager load relationships
-            // ->withSum('invoices.items', 'amount')
-            // ->withSum('invoices.items', 'tax')
+            ->where('id', $customer->id)                  // Ensure we are working with the correct customer
+            ->with(['tag', 'invoices', 'invoices.items']) // Eager load relationships
+            ->addSelect([
+                'total_invoice_amount' => Invoice::selectRaw('SUM(invoice_items.amount + invoice_items.tax)')
+                    ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
+                    ->whereColumn('invoices.customer_id', 'customers.id')
+                    ->groupBy('invoices.customer_id')
+                    ->limit(1), // Ensure only one value is returned per customer
+            ])
             ->first();
 
+        $invoiceData = Invoice::selectRaw('SUM(invoice_items.amount + invoice_items.tax) as total_invoice_amount')
+            ->selectRaw('strftime("%m", invoices.invoice_date) AS month')
+            ->selectRaw('strftime("%Y", invoices.invoice_date) AS year')
+            ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereColumn('invoices.customer_id', $customer->id)
+            ->groupBy(DB::raw('strftime("%Y", invoices.invoice_date)'), DB::raw('strftime("%m", invoices.invoice_date)'))
+            ->get();
+
+        // Initialize an empty array to store the final result
+        $finalResult = [];
+
+        // Create an associative array of invoice data for easier lookup
+        $invoiceDataArray = $invoiceData->keyBy(function ($item) {
+            return $item->month . '-' . $item->year;
+        });
+
+        // Loop for the next 3 months (from +1 to +3)
+        for ($i = 1; $i > 0; $i--) {
+            $last12Months[] = date('m-Y', strtotime("+$i month"));
+        }
+        // Loop for the past 12 months (from 0 to -11)
+        for ($i = 0; $i < 12; $i++) {
+            $last12Months[] = date('m-Y', strtotime("-$i month"));
+        }
+
+        // Loop through the last 12 months and check if data exists
+        foreach (array_reverse($last12Months) as $monthYear) {
+            if (isset($invoiceDataArray[$monthYear])) {
+                $finalResult[$monthYear] = $invoiceDataArray[$monthYear]->total_invoice_amount;
+            } else {
+                $finalResult[$monthYear] = 0;
+            }
+        }
+
+        // Query to fetch daily invoice data for the customer
+        $dailyInvoiceData = Invoice::selectRaw('SUM(invoice_items.amount + invoice_items.tax) as total_invoice_amount')
+            ->selectRaw('strftime("%Y-%m-%d", invoices.invoice_date) AS date')
+            ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->whereColumn('invoices.customer_id', $customer->id)
+            ->groupBy(DB::raw('strftime("%Y-%m-%d", invoices.invoice_date)'))
+            ->get();
+
+        // Create an associative array of invoice data for easier lookup
+        $dailyInvoiceDataArray = $dailyInvoiceData->keyBy(function ($item) {
+            return $item->date;
+        });
+
+        // Initialize the daily range for the chart
+        $dailyChartData = [
+            'labels' => [],
+            'data'   => [],
+        ];
+
+        $startDate = now()->subDays(30); // 12 days ago
+
+        for ($i = 0; $i <= 15; $i++) {
+            $currentDate                = $startDate->addDay()->format('Y-m-d');
+            $dailyChartData['labels'][] = $currentDate;                                                                                                 // Add the date as a label
+            $dailyChartData['data'][]   = isset($dailyInvoiceDataArray[$currentDate]) ? $dailyInvoiceDataArray[$currentDate]->total_invoice_amount : 0; // Add invoice data or 0
+        }
+
         return view('customers.view', [
-            'customer' => $customer,
+            'customer'       => $customer,
+            'chartData'      => [
+                'labels' => array_keys($finalResult),
+                'data'   => array_values($finalResult),
+            ],
+            'dailyChartData' => $dailyChartData,
         ]);
     }
 

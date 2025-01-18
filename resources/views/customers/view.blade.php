@@ -48,6 +48,8 @@
                         {{ $customer->tag->name }}
                     </span>
                 </div>
+                <h1 class="text-xl font-semibold">Total Invoice
+                    ${{ number_format($customer->total_invoice_amount, 2, '.', ',') }}</h1>
                 <p class="text-sm text-gray-600">{{ $customer->email }}</p>
             </header>
 
@@ -106,7 +108,11 @@
             </ul>
         </div>
         <div class="statistics-tab">
-            Chart
+            <h1 class="text-xl font-semibold mt-5">Daily Chart Data</h1>
+            <div><canvas id="dailyChart"></canvas></div>
+            <h1 class="text-xl font-semibold mt-5">Monthly Chart Data</h1>
+            <div><canvas id="yearlyChart"></canvas></div>
+
         </div>
         <div class="invoice-tab hidden">
             <!-- Filters -->
@@ -161,6 +167,8 @@
 
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         $(document).ready(function() {
             $('#daterange').val('');
@@ -205,7 +213,7 @@
                     [10, 25, 50, 100, 1000],
                     [10, 25, 50, 100, "1000"]
                 ],
-                pageLength: 50,
+                pageLength: 10,
                 language: {
                     lengthMenu: "_MENU_" // Only the dropdown without the label
                 },
@@ -276,5 +284,116 @@
                 }
             })
         });
+
+        (async function() {
+            const data = [{
+                    year: 2010,
+                    count: 10
+                },
+                {
+                    year: 2011,
+                    count: 20
+                },
+                {
+                    year: 2012,
+                    count: 15
+                },
+                {
+                    year: 2013,
+                    count: 25
+                },
+                {
+                    year: 2014,
+                    count: 22
+                },
+                {
+                    year: 2015,
+                    count: 30
+                },
+                {
+                    year: 2016,
+                    count: 28
+                },
+            ];
+
+            var yearlyChartData = {!! json_encode($chartData) !!};
+            var dailyChartData = {!! json_encode($dailyChartData) !!};
+
+            new Chart(
+                document.getElementById('dailyChart'), {
+                    type: 'line',
+                    data: {
+                        labels: dailyChartData.labels,
+                        datasets: [{
+                            label: 'Invoices last 30 months',
+                            data: dailyChartData.data
+                        }]
+                    }
+                }
+            );
+
+            new Chart(document.getElementById('yearlyChart'), {
+                type: 'line',
+                data: {
+                    labels: yearlyChartData.labels,
+                    datasets: [{
+                        label: 'Invoices last 12 months',
+                        data: yearlyChartData.data,
+                        borderColor: '#4e73df', // Line color
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)', // Fill color
+                        fill: true, // Fill under the line
+                        tension: 0.4 // Smooth curve
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: 'Arial'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false, // Remove grid for x-axis
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false, // Remove grid for y-axis
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 4, // Adjust point size
+                            backgroundColor: '#4e73df', // Point color
+                            borderColor: '#4e73df', // Border color of points
+                            hoverRadius: 6 // Hover effect size
+                        }
+                    }
+                }
+            });
+        })();
     </script>
 @endsection
