@@ -221,7 +221,7 @@ class CustomerController extends Controller
         $request->validate([
             'id'     => 'required|exists:customers,id',
             'column' => 'required',
-            'value'  => 'required|string|max:255',
+            'value'  => 'max:255',
         ]);
 
         // Check if updating the email and ensure uniqueness
@@ -240,7 +240,7 @@ class CustomerController extends Controller
             $customer->last_name  = isset($nameParts[1]) ? $nameParts[1] : '';
         } else {
             // Update the specified column dynamically
-            $customer->{$request->column} = $request->value;
+            $customer->{$request->column} = $request->value ?? '';
         }
 
         // Save the customer

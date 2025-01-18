@@ -66,8 +66,46 @@
 
             /* Adjust padding for cells */
             #customersTable td {
-                padding: 2px;
+                padding: 3px;
                 text-align: left;
+            }
+
+            .dataTables_filter {
+                display: flex;
+                justify-content: flex-start;
+                margin-bottom: 10px;
+                /* Optional: Add space between filter and table */
+            }
+
+            .filter-wrapper {
+                display: flex;
+                align-items: center;
+            }
+
+            .search-box,
+            .tag-filter {
+                margin-right: 15px;
+            }
+
+            .select2-container {
+                width: 100% !important;
+            }
+            #tagFilterContainer {
+                width: 150px !important;
+            }
+
+            #customersTable_wrapper .dt-search {
+                padding-bottom: 10px;
+                /* Adjust as needed */
+            }
+
+            .select2-container--default .select2-selection--multiple{
+                padding-bottom: 11px !important;
+            }
+
+            div.dt-container select.dt-input{
+                width: 100px;
+                height: 35px;
             }
 
         </style>
@@ -94,12 +132,9 @@
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="flex flex-col md:flex-row justify-left items-center mb-4">
-            <!-- Customer Multi-Select -->
-            <div class="mb-4 md:mb-0">
-                <label for="tagFilter" class="block text-sm font-medium text-gray-700">Filter by Tag</label>
-                <select id="tagFilter" class="w-full md:w-64 border-gray-300 rounded-lg select2-init" multiple="multiple">
+        <div class="flex flex-col md:flex-row justify-left items-center mb-4 hidden">
+            <div class="ml-4" id="tagFilterContainer">
+                <select id="tagFilter" class="w-full md:w-80 border-gray-300 rounded-lg select2-init" multiple="multiple">
                     @foreach ($tags ?? [] as $tag)
                         <option data-color="{{ $tag->bg_color }}" value="{{ $tag->id }}">{{ $tag->name }}</option>
                     @endforeach
@@ -278,9 +313,15 @@
                         searchable: false
                     }
                 ],
-                lengthChange: false,
-                responsive: true,
+                lengthChange: true,
+                responsive: true, language: {
+                    search: "", // Set the placeholder for the search input
+                    searchPlaceholder: "Search Customers" // Change the placeholder here
+                },
+                dom: '<"flex items-left"<"top"f><"filter-container"><"ml-4 mr-4"l>>rt<"bottom"p><"clear">', // Adjusted dom structure
                 drawCallback: function(settings) {
+
+                    $('.filter-container').append($('#tagFilterContainer'))
                     $(`#customersTable tbody td:nth-child(2)
                     , #customersTable tbody td:nth-child(3)
                     , #customersTable tbody td:nth-child(4)
@@ -293,51 +334,51 @@
                     , #customersTable tbody td:nth-child(12)
                     , #customersTable tbody td:nth-child(13)
                     `)
-                        .attr('contenteditable', 'true')
-                        .each(function() {
-                            // Add data attributes to each editable cell for column name and customer ID
-                            var cell = $(this);
-                            var columnIndex = cell.index(); // Get the index of the column
-                            var rowIndex = cell.parent().index(); // Get the index of the row
-                            var columnName;
+                    .attr('contenteditable', 'true')
+                    .each(function() {
+                        // Add data attributes to each editable cell for column name and customer ID
+                        var cell = $(this);
+                        var columnIndex = cell.index(); // Get the index of the column
+                        var rowIndex = cell.parent().index(); // Get the index of the row
+                        var columnName;
 
-                            // Map column index to your column names (adjust based on your DataTable column configuration)
-                            if (columnIndex === 1) {
-                                columnName = 'full_name';
-                            } else if (columnIndex === 2) {
-                                columnName = 'email';
-                            } else if (columnIndex === 3) {
-                                columnName = 'tag_id';
-                            } else if (columnIndex === 3) {
-                                columnName = 'tag_id';
-                            } else if (columnIndex === 5) {
-                                columnName = 'po_address_line1';
-                            } else if (columnIndex === 6) {
-                                columnName = 'po_city';
-                            } else if (columnIndex === 7) {
-                                columnName = 'po_zip_code';
-                            } else if (columnIndex === 8) {
-                                columnName = 'po_country';
-                            } else if (columnIndex === 9) {
-                                columnName = 'sa_address_line1';
-                            } else if (columnIndex === 10) {
-                                columnName = 'sa_city';
-                            } else if (columnIndex === 11) {
-                                columnName = 'sa_zip_code';
-                            } else if (columnIndex === 12) {
-                                columnName = 'sa_country';
-                            }
+                        // Map column index to your column names (adjust based on your DataTable column configuration)
+                        if (columnIndex === 1) {
+                            columnName = 'full_name';
+                        } else if (columnIndex === 2) {
+                            columnName = 'email';
+                        } else if (columnIndex === 3) {
+                            columnName = 'tag_id';
+                        } else if (columnIndex === 3) {
+                            columnName = 'tag_id';
+                        } else if (columnIndex === 5) {
+                            columnName = 'po_address_line1';
+                        } else if (columnIndex === 6) {
+                            columnName = 'po_city';
+                        } else if (columnIndex === 7) {
+                            columnName = 'po_zip_code';
+                        } else if (columnIndex === 8) {
+                            columnName = 'po_country';
+                        } else if (columnIndex === 9) {
+                            columnName = 'sa_address_line1';
+                        } else if (columnIndex === 10) {
+                            columnName = 'sa_city';
+                        } else if (columnIndex === 11) {
+                            columnName = 'sa_zip_code';
+                        } else if (columnIndex === 12) {
+                            columnName = 'sa_country';
+                        }
 
-                            // Get customer ID from the row data (if available in DataTable row data)
-                            var customerId = settings.json.data[rowIndex]
-                                ?.id; // Assuming 'id' is part of your row data
+                        // Get customer ID from the row data (if available in DataTable row data)
+                        var customerId = settings.json.data[rowIndex]
+                            ?.id; // Assuming 'id' is part of your row data
 
-                            // Add data attributes for column name and customer ID
-                            if (columnName && customerId) {
-                                cell.attr('data-column', columnName);
-                                cell.attr('data-id', customerId);
-                            }
-                        });
+                        // Add data attributes for column name and customer ID
+                        if (columnName && customerId) {
+                            cell.attr('data-column', columnName);
+                            cell.attr('data-id', customerId);
+                        }
+                    });
                 }
             });
 
@@ -414,7 +455,7 @@
                 }
             });
             // Trigger the update when an editable field is changed
-            $('#customersTable').on('blur', 'td[contenteditable="true"]', function() {
+            $('#customersTable').on('focusout', 'td[contenteditable="true"]', function() {
 
                 // Get the column name (e.g., 'full_name', 'email', etc.) from the data-column attribute
                 var column = $(this).data('column');
@@ -462,6 +503,7 @@
             $('#tagFilter').select2({
                 allowClear: true, // Allow users to clear selections
                 tags: true, // Enable tagging
+                placeholder: "Filter by Tag",
                 // width: '150%'     // Adjust width to match the parent element
                 width: 'resolve',
 
