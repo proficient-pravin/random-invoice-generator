@@ -904,7 +904,8 @@
         </style>
     @endif
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
-
+    @stack('styles')
+    @stack('scripts')
 </head>
 
 <body class="font-sans antialiased dark:bg-black dark:text-white/50">

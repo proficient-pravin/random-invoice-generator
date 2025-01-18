@@ -19,12 +19,12 @@ class CustomerController extends Controller
 
         if (request()->ajax()) {
             $customers = Customer::query()
-                ->with('tag')  
-                ->when(!empty(request()->tag), function($q){
-                    $q->whereHas('tag', function($q){
+                ->with('tag')
+                ->when(! empty(request()->tag), function ($q) {
+                    $q->whereHas('tag', function ($q) {
                         $q->whereIn('id', request()->tag);
                     });
-                })         // Load tag relationship
+                })                      // Load tag relationship
                 ->select('customers.*') // Select customer columns
                 ->addSelect([
                     'total_invoice_amount' => Invoice::selectRaw('SUM(invoice_items.amount)')
@@ -55,7 +55,7 @@ class CustomerController extends Controller
                 ->make(true);
         }
 
-        return view('customers.index',[
+        return view('customers.index', [
             'tags' => Tag::all(),
         ]);
     }
@@ -214,4 +214,39 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully!');
     }
+
+    public function updateInline(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'id'     => 'required|exists:customers,id',
+            'column' => 'required',
+            'value'  => 'required|string|max:255',
+        ]);
+
+        // Check if updating the email and ensure uniqueness
+        if ($request->column === 'email') {
+            $request->validate([
+                'value' => 'email|unique:customers,email,' . $request->id,
+            ]);
+        }
+
+        $customer = Customer::find($request->id);
+
+        if ($request->column === 'full_name') {
+            // Handle splitting of full_name into first_name and last_name
+            $nameParts            = explode(' ', trim($request->value), 2);
+            $customer->first_name = $nameParts[0];
+            $customer->last_name  = isset($nameParts[1]) ? $nameParts[1] : '';
+        } else {
+            // Update the specified column dynamically
+            $customer->{$request->column} = $request->value;
+        }
+
+        // Save the customer
+        $customer->save();
+
+        return response()->json(['success' => true]);
+    }
+
 }

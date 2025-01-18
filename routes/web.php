@@ -36,6 +36,7 @@ Route::middleware('auth')->prefix('customers')->name('customers.')->group(functi
     Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
     Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
     Route::post('/import', [CustomerController::class, 'import'])->name('import');
+    Route::post('/update-inline', [CustomerController::class, 'updateInline'])->name('updateInline');
 });
 Route::middleware('auth')->prefix('products')->name('products.')->group(function () {
     Route::get('/', [ProductController::class, 'index'])->name('index');

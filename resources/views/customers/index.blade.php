@@ -1,6 +1,71 @@
 @extends('layouts.master')
 
 @section('content')
+    @push('styles')
+        <style>
+            /* Add gridlines */
+            #customersTable tbody td {
+                border: 1px solid #ccc;
+                /* Gridline style */
+            }
+
+            #customersTable {
+                border-collapse: collapse;
+                /* Ensure cells are tightly packed */
+            }
+
+            /* Highlight the active (focused) cell */
+            td[contenteditable="true"]:focus {
+                outline: 2px solid #007bff;
+                /* Blue border for the focused cell */
+                background-color: #f0f8ff;
+                /* Light blue background for the focused cell */
+            }
+
+            /* Change hover effect for better visibility */
+            #customersTable tbody td:hover {
+                background-color: #e8f5ff;
+                /* Light hover effect */
+                cursor: text;
+                /* Indicate editability */
+            }
+
+            /* Make headers stand out */
+            #customersTable thead th {
+                /* background-color: #007bff; */
+                /* Header background color */
+                /* color: white; */
+                /* Header text color */
+                font-weight: bold;
+                text-align: center;
+            }
+
+            /* Make the table responsive */
+            #customersTable {
+                width: 100%;
+                table-layout: auto;
+                /* Adjust columns automatically */
+            }
+
+            /* Adjust padding for cells */
+            #customersTable td,
+            #customersTable th {
+                padding: 8px;
+                text-align: left;
+            }
+
+            #customersTable td {
+                padding: 4px;
+                text-align: left;
+            }
+
+            /* Style the table container */
+            .dataTable-container {
+                overflow-x: auto;
+                /* Add horizontal scroll for large tables */
+            }
+        </style>
+    @endpush
     <div class="container mx-auto p-6">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
             <!-- Title on the left -->
@@ -30,7 +95,7 @@
                 <label for="tagFilter" class="block text-sm font-medium text-gray-700">Filter by Tag</label>
                 <select id="tagFilter" class="w-full md:w-64 border-gray-300 rounded-lg select2-init" multiple="multiple">
                     @foreach ($tags ?? [] as $tag)
-                        <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                        <option data-color="{{ $tag->bg_color }}" value="{{ $tag->id }}">{{ $tag->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -45,7 +110,7 @@
                         <th scope="col" class="px-6 py-3">Full Name</th>
                         <th scope="col" class="px-6 py-3">Email</th>
                         <th scope="col" class="px-6 py-3">Tag</th>
-                        <th scope="col" class="px-6 py-3">Total Invoice Amount</th>
+                        <th scope="col" class="px-6 py-3">Invoice</th>
                         <th scope="col" class="px-6 py-3">Actions</th>
                     </tr>
                 </thead>
@@ -151,6 +216,144 @@
                 ],
                 lengthChange: false,
                 responsive: true,
+                drawCallback: function(settings) {
+                    $('#customersTable tbody td:nth-child(2), #customersTable tbody td:nth-child(3), #customersTable tbody td:nth-child(4)')
+                        .attr('contenteditable', 'true')
+                        .each(function() {
+                            // Add data attributes to each editable cell for column name and customer ID
+                            var cell = $(this);
+                            var columnIndex = cell.index(); // Get the index of the column
+                            var rowIndex = cell.parent().index(); // Get the index of the row
+                            var columnName;
+
+                            // Map column index to your column names (adjust based on your DataTable column configuration)
+                            if (columnIndex === 1) {
+                                columnName = 'full_name';
+                            } else if (columnIndex === 2) {
+                                columnName = 'email';
+                            } else if (columnIndex === 3) {
+                                columnName = 'tag_id';
+                            }
+
+                            // Get customer ID from the row data (if available in DataTable row data)
+                            var customerId = settings.json.data[rowIndex]
+                                ?.id; // Assuming 'id' is part of your row data
+
+                            // Add data attributes for column name and customer ID
+                            if (columnName && customerId) {
+                                cell.attr('data-column', columnName);
+                                cell.attr('data-id', customerId);
+                            }
+                        });
+                }
+            });
+
+            // Handle inline dropdown editing for tag_name
+            $('#customersTable').on('click', 'td[data-column="tag_id"]', function() {
+                var cell = $(this);
+                var currentTagName = cell.text().trim();
+                var customerId = cell.data('id');
+                var selectId = 'tagSelect_' + customerId;
+
+                if (cell.find('select').length === 0) {
+                    var selectHtml = `
+                        <select id="${selectId}" class="form-control tag-dropdown" style="width:100%">
+                            <option value="">Find a Tag</option>
+                            @foreach ($tags ?? [] as $tag)
+                                <option 
+                                    value="{{ $tag->id }}" 
+                                    data-color="{{ $tag->bg_color }}"
+                                    {{ $tag->name == '${currentTagName}' ? 'selected' : '' }}>
+                                    {{ $tag->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    `;
+
+                    cell.html(selectHtml);
+
+                    // Initialize Select2
+                    $('#' + selectId).select2({
+                        dropdownParent: cell, // Ensures dropdown renders in the correct place
+                        width: 'resolve',
+                        placeholder: "Find a Tag",
+                        templateResult: formatOption, // Custom option formatting
+                        templateSelection: formatSelectedOption, // Custom selected formatting
+                    });
+
+                    $('#' + selectId).focus();
+
+                    // Handle change event for updating tag
+                    $('#' + selectId).on('change', function() {
+                        var newTagId = $(this).val();
+                        var newTagName = $(this).find('option:selected').text();
+                        var selectedOption = $(this).find('option:selected');
+                        var bgColor = selectedOption.data('color');
+                        $.ajax({
+                            url: "{{ route('customers.updateInline') }}",
+                            method: "POST",
+                            data: {
+                                id: customerId,
+                                column: 'tag_id',
+                                value: newTagId,
+                                _token: '{{ csrf_token() }}',
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    cell.html(
+                                        `<span data-bg-color="${bgColor}" style="background-color: ${bgColor}; color: #fff; padding: 2px 5px; border-radius: 3px;">${newTagName}</span>`
+                                    );
+                                    console.log("Tag updated successfully!");
+                                }
+                            },
+                            error: function() {
+                                alert("An error occurred while updating the tag!");
+                                cell.html(currentTagName);
+                            },
+                        });
+                    });
+
+                    $('#' + selectId).on('blur', function() {
+                        if (!$(this).val()) {
+                            cell.html(currentTagName);
+                        }
+                    });
+                }
+            });
+            // Trigger the update when an editable field is changed
+            $('#customersTable').on('blur', 'td[contenteditable="true"]', function() {
+
+                // Get the column name (e.g., 'full_name', 'email', etc.) from the data-column attribute
+                var column = $(this).data('column');
+                if (column == 'tag_id') {
+                    return false
+                }
+
+                // Get the new value of the cell after editing
+                var newValue = $(this).text();
+
+                // Get the customer ID from the data-id attribute
+                var customerId = $(this).data('id');
+
+                // Send an AJAX request to update the field
+                $.ajax({
+                    url: "{{ route('customers.updateInline') }}", // Define this route in your web.php
+                    method: "POST",
+                    data: {
+                        id: customerId, // Customer ID
+                        column: column, // Column name (e.g., 'full_name', 'email', etc.)
+                        value: newValue, // New value entered by the user
+                        _token: '{{ csrf_token() }}', // CSRF token for security
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            console.log("Customer updated successfully!");
+                        }
+                    },
+                    error: function() {
+                        alert("An error occurred while updating!");
+                    }
+                });
             });
 
             // Show import modal
@@ -165,13 +368,40 @@
 
             $('#tagFilter').select2({
                 allowClear: true, // Allow users to clear selections
-                tags: true,       // Enable tagging
+                tags: true, // Enable tagging
                 // width: '150%'     // Adjust width to match the parent element
+                width: 'resolve',
+
+                templateResult: formatOption, // Custom option formatting
+                templateSelection: formatSelectedOption, // Custom selected formatting
             });
 
             $('#tagFilter').on('change', function() {
                 table.ajax.reload();
             });
+
+            // Format dropdown options with colors
+            function formatOption(option) {
+                if (!option.id) {
+                    return option.text; // Default for placeholder
+                }
+
+                var bgColor = $(option.element).data('color') || '#000';
+                return $(
+                    `<span data-bg-color="${bgColor}" style="background-color: ${bgColor}; color: #fff; padding: 5px 10px; border-radius: 5px;">${option.text}</span>`
+                );
+            }
+
+            // Format selected value in the dropdown
+            function formatSelectedOption(option) {
+                if (!option.id) {
+                    return option.text; // Default for placeholder
+                }
+                var bgColor = $(option.element).data('color') || '#000';
+                return $(
+                    `<span data-bg-color="${bgColor}" style="background-color: ${bgColor}; color: #fff; padding: 2px 5px; border-radius: 3px;">${option.text}</span>`
+                );
+            }
         });
     </script>
 @endsection
