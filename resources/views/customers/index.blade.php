@@ -90,6 +90,7 @@
             .select2-container {
                 width: 100% !important;
             }
+
             #tagFilterContainer {
                 width: 150px !important;
             }
@@ -99,18 +100,36 @@
                 /* Adjust as needed */
             }
 
-            .select2-container--default .select2-selection--multiple{
+            .select2-container--default .select2-selection--multiple {
                 padding-bottom: 11px !important;
             }
 
-            div.dt-container select.dt-input{
+            div.dt-container select.dt-input {
                 width: 100px;
                 height: 35px;
             }
 
-            .select2-container .select2-search--inline .select2-search__field{
-                height: 21px!important;
+            .select2-container .select2-search--inline .select2-search__field {
+                height: 21px !important;
             }
+
+            .id-cell {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .icon {
+                margin-left: 8px;
+                /* Add space between text and icon */
+                transition: opacity 0.3s ease;
+            }
+
+            .id-cell:hover .icon {
+                display: block;
+                cursor: pointer;
+            }
+
         </style>
     @endpush
     <div class="container mx-auto p-6">
@@ -247,7 +266,19 @@
                 columns: [{
                         data: 'id',
                         name: 'id',
-                        className: 'whitespace-nowrap'
+                        className: 'whitespace-nowrap',
+                        render: function(data, type, row, meta) {
+                            return `
+                                <div class="id-cell hoverable">
+                                    <span>${data}</span>
+                                    <a href="/customers/view" class="icon hidden w-6 h-6 text-gray-800 dark:text-white">
+                                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            `;
+                        }
                     },
                     {
                         data: 'full_name',
@@ -317,7 +348,8 @@
                     }
                 ],
                 lengthChange: true,
-                responsive: true, language: {
+                responsive: true,
+                language: {
                     search: "", // Set the placeholder for the search input
                     searchPlaceholder: "Search Customers" // Change the placeholder here
                 },
@@ -337,51 +369,51 @@
                     , #customersTable tbody td:nth-child(12)
                     , #customersTable tbody td:nth-child(13)
                     `)
-                    .attr('contenteditable', 'true')
-                    .each(function() {
-                        // Add data attributes to each editable cell for column name and customer ID
-                        var cell = $(this);
-                        var columnIndex = cell.index(); // Get the index of the column
-                        var rowIndex = cell.parent().index(); // Get the index of the row
-                        var columnName;
+                        .attr('contenteditable', 'true')
+                        .each(function() {
+                            // Add data attributes to each editable cell for column name and customer ID
+                            var cell = $(this);
+                            var columnIndex = cell.index(); // Get the index of the column
+                            var rowIndex = cell.parent().index(); // Get the index of the row
+                            var columnName;
 
-                        // Map column index to your column names (adjust based on your DataTable column configuration)
-                        if (columnIndex === 1) {
-                            columnName = 'full_name';
-                        } else if (columnIndex === 2) {
-                            columnName = 'email';
-                        } else if (columnIndex === 3) {
-                            columnName = 'tag_id';
-                        } else if (columnIndex === 3) {
-                            columnName = 'tag_id';
-                        } else if (columnIndex === 5) {
-                            columnName = 'po_address_line1';
-                        } else if (columnIndex === 6) {
-                            columnName = 'po_city';
-                        } else if (columnIndex === 7) {
-                            columnName = 'po_zip_code';
-                        } else if (columnIndex === 8) {
-                            columnName = 'po_country';
-                        } else if (columnIndex === 9) {
-                            columnName = 'sa_address_line1';
-                        } else if (columnIndex === 10) {
-                            columnName = 'sa_city';
-                        } else if (columnIndex === 11) {
-                            columnName = 'sa_zip_code';
-                        } else if (columnIndex === 12) {
-                            columnName = 'sa_country';
-                        }
+                            // Map column index to your column names (adjust based on your DataTable column configuration)
+                            if (columnIndex === 1) {
+                                columnName = 'full_name';
+                            } else if (columnIndex === 2) {
+                                columnName = 'email';
+                            } else if (columnIndex === 3) {
+                                columnName = 'tag_id';
+                            } else if (columnIndex === 3) {
+                                columnName = 'tag_id';
+                            } else if (columnIndex === 5) {
+                                columnName = 'po_address_line1';
+                            } else if (columnIndex === 6) {
+                                columnName = 'po_city';
+                            } else if (columnIndex === 7) {
+                                columnName = 'po_zip_code';
+                            } else if (columnIndex === 8) {
+                                columnName = 'po_country';
+                            } else if (columnIndex === 9) {
+                                columnName = 'sa_address_line1';
+                            } else if (columnIndex === 10) {
+                                columnName = 'sa_city';
+                            } else if (columnIndex === 11) {
+                                columnName = 'sa_zip_code';
+                            } else if (columnIndex === 12) {
+                                columnName = 'sa_country';
+                            }
 
-                        // Get customer ID from the row data (if available in DataTable row data)
-                        var customerId = settings.json.data[rowIndex]
-                            ?.id; // Assuming 'id' is part of your row data
+                            // Get customer ID from the row data (if available in DataTable row data)
+                            var customerId = settings.json.data[rowIndex]
+                                ?.id; // Assuming 'id' is part of your row data
 
-                        // Add data attributes for column name and customer ID
-                        if (columnName && customerId) {
-                            cell.attr('data-column', columnName);
-                            cell.attr('data-id', customerId);
-                        }
-                    });
+                            // Add data attributes for column name and customer ID
+                            if (columnName && customerId) {
+                                cell.attr('data-column', columnName);
+                                cell.attr('data-id', customerId);
+                            }
+                        });
                 }
             });
 
