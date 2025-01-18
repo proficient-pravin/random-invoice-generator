@@ -59,6 +59,7 @@ Route::middleware('auth')->prefix('tags')->name('tags.')->group(function () {
 Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/', [InvoiceController::class, 'index'])->name('index');
     Route::get('/{invoice}/download', [InvoiceController::class, 'download'])->name('download');
+    Route::get('/{invoice}/preview', [InvoiceController::class, 'preview'])->name('preview');
 });
 
 require __DIR__.'/auth.php';

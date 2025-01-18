@@ -27,7 +27,7 @@ class CustomerController extends Controller
                 })                      // Load tag relationship
                 ->select('customers.*') // Select customer columns
                 ->addSelect([
-                    'total_invoice_amount' => Invoice::selectRaw('SUM(invoice_items.amount)')
+                    'total_invoice_amount' => Invoice::selectRaw('SUM(invoice_items.amount + invoice_items.tax)')
                         ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
                         ->whereColumn('invoices.customer_id', 'customers.id')
                         ->groupBy('invoices.customer_id')
