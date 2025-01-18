@@ -325,7 +325,7 @@
                     data: {
                         labels: dailyChartData.labels,
                         datasets: [{
-                            label: 'Invoices last 30 days',
+                            label: 'Invoices last 15 days',
                             data: dailyChartData.data
                         }]
                     }
