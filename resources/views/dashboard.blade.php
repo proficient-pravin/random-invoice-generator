@@ -25,7 +25,7 @@
                 <!-- Start Invoice Number -->
                 <div>
                     <label for="start_invoice_number" class="block text-sm font-medium text-gray-700">Start Invoice Number</label>
-                    <input type="number" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="start_invoice_number" value="{{ $startInvoiceNumber }}" required>
+                    <input type="number" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" readonly name="start_invoice_number" value="{{ $startInvoiceNumber }}" required>
                 </div>
 
                 <!-- Number of Invoices -->
