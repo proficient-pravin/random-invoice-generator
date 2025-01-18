@@ -32,7 +32,7 @@ Route::middleware('auth')->prefix('customers')->name('customers.')->group(functi
     Route::get('/', [CustomerController::class, 'index'])->name('index');
     Route::get('/create', [CustomerController::class, 'create'])->name('create');
     Route::post('/store', [CustomerController::class, 'store'])->name('store');
-    Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->name('edit');
+    // Route::get('/{customer}/edit', [CustomerController::class, 'edit'])->name('edit');
     Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
     Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
     Route::post('/import', [CustomerController::class, 'import'])->name('import');
