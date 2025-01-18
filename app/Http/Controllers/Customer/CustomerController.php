@@ -121,11 +121,11 @@ class CustomerController extends Controller
             ->first();
 
         $invoiceData = Invoice::selectRaw('SUM(invoice_items.amount + invoice_items.tax) as total_invoice_amount')
-            ->selectRaw('strftime("%m", invoices.invoice_date) AS month')
-            ->selectRaw('strftime("%Y", invoices.invoice_date) AS year')
+            ->selectRaw('DATE_FORMAT(invoices.invoice_date, "%m") AS month')
+            ->selectRaw('DATE_FORMAT(invoices.invoice_date, "%Y") AS year')
             ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->whereColumn('invoices.customer_id', $customer->id)
-            ->groupBy(DB::raw('strftime("%Y", invoices.invoice_date)'), DB::raw('strftime("%m", invoices.invoice_date)'))
+            ->groupBy(DB::raw('DATE_FORMAT(invoices.invoice_date, "%Y")'), DB::raw('DATE_FORMAT(invoices.invoice_date, "%m")'))
             ->get();
 
         // Initialize an empty array to store the final result
@@ -156,10 +156,10 @@ class CustomerController extends Controller
 
         // Query to fetch daily invoice data for the customer
         $dailyInvoiceData = Invoice::selectRaw('SUM(invoice_items.amount + invoice_items.tax) as total_invoice_amount')
-            ->selectRaw('strftime("%Y-%m-%d", invoices.invoice_date) AS date')
+            ->selectRaw('DATE_FORMAT(invoices.invoice_date, "%Y-%m-%d") AS date') // Use DATE_FORMAT for MySQL
             ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->whereColumn('invoices.customer_id', $customer->id)
-            ->groupBy(DB::raw('strftime("%Y-%m-%d", invoices.invoice_date)'))
+            ->groupBy(DB::raw('DATE_FORMAT(invoices.invoice_date, "%Y-%m-%d")')) // Group by formatted date
             ->get();
 
         // Create an associative array of invoice data for easier lookup
