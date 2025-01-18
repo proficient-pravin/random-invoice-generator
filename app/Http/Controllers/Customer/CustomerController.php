@@ -16,10 +16,20 @@ class CustomerController extends Controller
     {
 
         if (request()->ajax()) {
-            $customers = Customer::query();
+            $customers = Customer::query()->with('invoices.items');
             return DataTables::of($customers)
                 ->addColumn('actions', function ($customer) {
                     return view('customers.actions', compact('customer'));
+                })
+                ->addColumn('full_name', function ($customer) {
+                    return "$customer->first_name $customer->last_name";
+                })
+                ->addColumn('total_invoice_amount', function ($customer) {
+                    $totalAmount = $customer->invoices->flatMap(function ($invoice) {
+                        return $invoice->items;
+                    })->sum('amount');
+
+                    return number_format($totalAmount, 2, '.', ',');
                 })
                 ->make(true);
         }

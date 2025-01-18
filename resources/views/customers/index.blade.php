@@ -26,9 +26,9 @@
             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
                     <th scope="col" class="px-6 py-3">ID</th>
+                    <th scope="col" class="px-6 py-3">Full Name</th>
                     <th scope="col" class="px-6 py-3">Email</th>
-                    <th scope="col" class="px-6 py-3">First Name</th>
-                    <th scope="col" class="px-6 py-3">Last Name</th>
+                    <th scope="col" class="px-6 py-3">Total Invoice Amount</th>
                     <th scope="col" class="px-6 py-3">Actions</th>
                 </tr>
             </thead>
@@ -88,9 +88,9 @@
             ajax: "{{ route('customers.index') }}",
             columns: [
                 { data: 'id', name: 'id' },
+                { data: 'full_name', name: 'full_name' },
                 { data: 'email', name: 'email' },
-                { data: 'first_name', name: 'first_name' },
-                { data: 'last_name', name: 'last_name' },
+                { data: 'total_invoice_amount', name: 'total_invoice_amount' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             lengthChange: false,
