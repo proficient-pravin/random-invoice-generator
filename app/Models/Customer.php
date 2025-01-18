@@ -15,4 +15,12 @@ class Customer extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+     /**
+     * Get the customer that belogs the tag.
+     */
+    public function tag()
+    {
+        return $this->belongsTo(Tag::class);
+    }
 }

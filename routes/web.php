@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Customer\CustomerController;
+use App\Http\Controllers\Customer\TagController;
 use App\Http\Controllers\Invoice\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,14 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
     Route::put('/{product}', [ProductController::class, 'update'])->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
     Route::post('/import', [ProductController::class, 'import'])->name('import');
+});
+Route::middleware('auth')->prefix('tags')->name('tags.')->group(function () {
+    Route::get('/', [TagController::class, 'index'])->name('index');
+    Route::get('/create', [TagController::class, 'create'])->name('create');
+    Route::post('/store', [TagController::class, 'store'])->name('store');
+    Route::get('/{tag}/edit', [TagController::class, 'edit'])->name('edit');
+    Route::put('/{tag}', [TagController::class, 'update'])->name('update');
+    Route::delete('/{tag}', [TagController::class, 'destroy'])->name('destroy');
 });
 
 Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {

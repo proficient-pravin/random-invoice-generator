@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
@@ -16,7 +18,23 @@ class CustomerController extends Controller
     {
 
         if (request()->ajax()) {
-            $customers = Customer::query()->with('invoices.items');
+            $customers = Customer::query()
+                ->with('tag')  
+                ->when(!empty(request()->tag), function($q){
+                    $q->whereHas('tag', function($q){
+                        $q->whereIn('id', request()->tag);
+                    });
+                })         // Load tag relationship
+                ->select('customers.*') // Select customer columns
+                ->addSelect([
+                    'total_invoice_amount' => Invoice::selectRaw('SUM(invoice_items.amount)')
+                        ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
+                        ->whereColumn('invoices.customer_id', 'customers.id')
+                        ->groupBy('invoices.customer_id')
+                        ->limit(1), // Ensure only one value is returned per customer
+                ])
+                ->get();
+
             return DataTables::of($customers)
                 ->addColumn('actions', function ($customer) {
                     return view('customers.actions', compact('customer'));
@@ -24,17 +42,22 @@ class CustomerController extends Controller
                 ->addColumn('full_name', function ($customer) {
                     return "$customer->first_name $customer->last_name";
                 })
+                ->addColumn('tag_name', function ($customer) {
+                    $tag = $customer->tag;
+                    if ($tag) {
+                        return view('customers.tag', compact('tag'));
+                    }
+                    return ''; // Return empty if no tag is present
+                })
                 ->addColumn('total_invoice_amount', function ($customer) {
-                    $totalAmount = $customer->invoices->flatMap(function ($invoice) {
-                        return $invoice->items;
-                    })->sum('amount');
-
-                    return number_format($totalAmount, 2, '.', ',');
+                    return number_format($customer->total_invoice_amount, 2, '.', ',');
                 })
                 ->make(true);
         }
 
-        return view('customers.index');
+        return view('customers.index',[
+            'tags' => Tag::all(),
+        ]);
     }
 
     /**
@@ -42,7 +65,9 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        return view('customers.create');
+        return view('customers.create', [
+            'tags' => Tag::all(),
+        ]);
     }
 
     /**
@@ -54,6 +79,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'email'            => 'required|email|unique:customers,email',
+            'tag_id'           => 'nullable',
             'first_name'       => 'required|string|max:255',
             'last_name'        => 'required|string|max:255',
 
@@ -80,7 +106,10 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        return view('customers.edit', compact('customer'));
+        return view('customers.edit', [
+            'customer' => $customer,
+            'tags'     => Tag::all(),
+        ]);
     }
 
     /**
@@ -93,6 +122,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'email'            => 'required|email|unique:customers,email,' . $customer->id,
+            'tag_id'           => 'nullable',
             'first_name'       => 'required|string|max:255',
             'last_name'        => 'required|string|max:255',
 
@@ -139,26 +169,26 @@ class CustomerController extends Controller
             $preparedCustomers = [];
             foreach ($filteredCustomers as $customer) {
                 $_customer = [
-                    'email' => $customer[2] ?? '',
-                    'first_name' => $customer[3] ?? '',
-                    'last_name' => $customer[4] ?? '',
-                    'po_attention_to' => $customer[5] ?? '',
+                    'email'            => $customer[2] ?? '',
+                    'first_name'       => $customer[3] ?? '',
+                    'last_name'        => $customer[4] ?? '',
+                    'po_attention_to'  => $customer[5] ?? '',
                     'po_address_line1' => $customer[6] ?? '',
                     'po_address_line2' => $customer[7] ?? '',
                     'po_address_line3' => $customer[8] ?? '',
                     'po_address_line4' => $customer[9] ?? '',
-                    'po_city' => $customer[10] ?? '',
-                    'po_region' => $customer[11] ?? '',
-                    'po_zip_code' => $customer[12] ?? '',
-                    'po_country' => $customer[13] ?? '',
+                    'po_city'          => $customer[10] ?? '',
+                    'po_region'        => $customer[11] ?? '',
+                    'po_zip_code'      => $customer[12] ?? '',
+                    'po_country'       => $customer[13] ?? '',
                     'sa_address_line1' => $customer[15] ?? '',
                     'sa_address_line2' => $customer[16] ?? '',
                     'sa_address_line3' => $customer[17] ?? '',
                     'sa_address_line4' => $customer[18] ?? '',
-                    'sa_city' => $customer[19] ?? '',
-                    'sa_region' => $customer[20] ?? '',
-                    'sa_zip_code' => $customer[21] ?? '',
-                    'sa_country' => $customer[22] ?? '',
+                    'sa_city'          => $customer[19] ?? '',
+                    'sa_region'        => $customer[20] ?? '',
+                    'sa_zip_code'      => $customer[21] ?? '',
+                    'sa_country'       => $customer[22] ?? '',
                 ];
                 array_push($preparedCustomers, $_customer);
                 Customer::updateOrCreate(
