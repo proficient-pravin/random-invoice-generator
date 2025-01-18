@@ -86,28 +86,8 @@
 
     <script>
         $(document).ready(function() {
-            // Initialize Date Range Picker
-            $('#daterange').daterangepicker({
-                locale: {
-                    format: 'YYYY-MM-DD'
-                },
-                ranges: {
-                    'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
-                        'month').endOf('month')]
-                },
-                startDate: moment().startOf('month'), // Default start date
-                endDate: moment().endOf('month'), // Default end date
-                showDropdowns: true, // Enables dropdowns for year and month selection
-                autoUpdateInput: true
-            }, function(start, end, label) {
-                console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end
-                    .format('YYYY-MM-DD'));
-            });
+           
+            $('#daterange').val('');
 
             // Initialize DataTable
             var table = $('#invoicesTable').DataTable({
@@ -117,10 +97,12 @@
                     url: "{{ route('invoices.index') }}",
                     data: function(d) {
                         d.customer = $('#customerFilter').val();
-                        d.start_date = $('#daterange').data('daterangepicker').startDate.format(
-                            'YYYY-MM-DD');
-                        d.end_date = $('#daterange').data('daterangepicker').endDate.format(
-                            'YYYY-MM-DD');
+                        var daterange = $('#daterange').val();
+                        if (daterange) {
+                            var dates = daterange.split(' to ');
+                            d.start_date = dates[0];
+                            d.end_date = dates[1];
+                        }
                     }
                 },
                 columns: [{
@@ -157,6 +139,32 @@
                     lengthMenu: "_MENU_" // Only the dropdown without the label
                 },
                 // dom: 'lfrtip', // Includes the length menu dropdown        
+            });
+
+             // Initialize Date Range Picker
+             $('#daterange').daterangepicker({
+                locale: {
+                    format: 'YYYY-MM-DD'
+                },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                        'month').endOf('month')]
+                },
+                alwaysShowCalendars: true,
+                startDate: moment().startOf('month'), // Default start date
+                endDate: moment().endOf('month'), // Default end date
+                showDropdowns: true, // Enables dropdowns for year and month selection
+                autoUpdateInput: false
+            }, function(start, end, label) {
+                 // Manually update the input value when a range is selected
+                $('#daterange').val(start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+                table.ajax.reload();
+                console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
             });
 
              // Initialize Select2 for customer filter
