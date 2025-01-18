@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Invoice;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -16,7 +17,15 @@ class InvoiceController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            $invoices = Invoice::with('customer', 'items') // Eager load customer and items data
+            $invoices = Invoice::with('customer', 'items') 
+                ->when(!empty(request()->customer), function($q){
+                    $q->whereHas('customer', function($q){
+                        $q->whereIn('id', request()->customer);
+                    });
+                })
+                ->when(request()->start_date && request()->end_date, function($q){
+                    $q->whereBetween('invoice_date', [request()->start_date, request()->end_date]);
+                })
                 ->select('invoices.id', 'invoices.invoice_number', 'invoices.invoice_date', 'invoices.customer_id') // Select the necessary columns
                 ->addSelect(\DB::raw('ROUND(SUM(invoice_items.amount), 2) as total')) // Calculate the total dynamically from invoice items
                 ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id') // Join invoice_items table to get the amounts
@@ -47,7 +56,9 @@ class InvoiceController extends Controller
         }
         
     
-        return view('invoices.index');
+        return view('invoices.index',[
+            'customers' => Customer::all(),
+        ]);
     }
 
      /**
