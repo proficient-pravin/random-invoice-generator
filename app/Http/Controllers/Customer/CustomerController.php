@@ -104,6 +104,26 @@ class CustomerController extends Controller
      *
      * @param \App\Models\Customer $customer
      */
+    public function view(Customer $customer)
+    {
+        // Retrieve the customer with additional calculated column and related data
+        $customer = Customer::query()
+            ->where('id', $customer->id)                 // Ensure we are working with the correct customer
+            ->with(['tag', 'invoices','invoices.items'])                  // Eager load relationships
+            // ->withSum('invoices.items', 'amount')
+            // ->withSum('invoices.items', 'tax')
+            ->first();
+
+        return view('customers.view', [
+            'customer' => $customer,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified customer.
+     *
+     * @param \App\Models\Customer $customer
+     */
     public function edit(Customer $customer)
     {
         return view('customers.edit', [
