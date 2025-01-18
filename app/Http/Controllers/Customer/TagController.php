@@ -20,6 +20,10 @@ class TagController extends Controller
                 ->addColumn('actions', function ($tag) {
                     return view('tags.actions', compact('tag'));
                 })
+                ->addColumn('bg_color', function ($tag) {
+                    $tag->name = '';
+                    return view('customers.tag', compact('tag'));
+                })
                 ->make(true);
         }
 
