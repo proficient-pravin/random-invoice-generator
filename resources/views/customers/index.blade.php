@@ -108,6 +108,9 @@
                 height: 35px;
             }
 
+            .select2-container .select2-search--inline .select2-search__field{
+                height: 21px!important;
+            }
         </style>
     @endpush
     <div class="container mx-auto p-6">
