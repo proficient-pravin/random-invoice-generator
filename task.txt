@@ -1,0 +1,26 @@
+Dashboard
+
+Total Invoice till now
+Today Invoice
+This Year Invoice
+This month Invoice
+Most Selling Product
+Most Invoiced Customer
+
+
+admin/user/role
+A generator tab for admin
+
+Quote Management
+Email Template
+
+QT#	
+Quote Title	
+Customer
+Total Price	
+Status	(Draft) when invoiced then (Delivered) Expired when Expired date exceeded and invoice not paid when invoiced then show in invoices list
+Quote Date
+Expiry Date
+Due Date
+Invoiced (Yes/No)
+Last Note
