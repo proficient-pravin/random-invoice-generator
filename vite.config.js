@@ -12,7 +12,6 @@ export default defineConfig({
                 'resources/js/charts/chart-02.js',
                 'resources/js/charts/chart-03.js',
                 'resources/js/charts/chart-04.js',
-                'resources/js/charts/map-01.js'
             ],
             refresh: true,
         }),
