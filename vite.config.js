@@ -7,6 +7,8 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/style.css',
+                'resources/css/satoshi.css',
                 'resources/js/app.js',
                 'resources/js/charts/chart-01.js',
                 'resources/js/charts/chart-02.js',
