@@ -12,7 +12,12 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <!-- Styles / Scripts -->
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite([
+            'resources/css/app.css',
+            'resources/css/style.css',
+            'resources/css/satoshi.css',
+            'resources/js/app.js'
+             ])
     @else
         <style>
             /* ! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com */
@@ -908,7 +913,7 @@
     @stack('scripts')
 </head>
 
-<body class="font-sans antialiased dark:bg-black dark:text-white/50">
+{{-- <body class="font-sans antialiased dark:bg-black dark:text-white/50">
     <x-navbar>
     </x-navbar>
     <x-sidebar>
@@ -919,5 +924,45 @@
             @yield('content')
         </div>
     </div>
+</body> --}}
+
+<body
+x-data="{ page: 'ecommerce', 'loaded': true, 'darkMode': true, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false }"
+x-init="
+     darkMode = JSON.parse(localStorage.getItem('darkMode'));
+     $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
+:class="{'dark text-bodydark bg-boxdark-2': darkMode === true}"
+>
+<div x-data="{ selected: '' }">
+    <!-- Your content here -->
+  </div>
+
+{{-- <div
+  x-show="loaded"
+  x-init="window.addEventListener('DOMContentLoaded', () => {setTimeout(() => loaded = false, 500)})"
+  class="fixed left-0 top-0 z-999999 flex h-screen w-screen items-center justify-center bg-white dark:bg-black"
+>
+  <div
+    class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"
+  ></div>
+</div> --}}
+
+
+<div class="flex h-screen overflow-hidden">
+  <x-sidebar>
+</x-sidebar> 
+
+  <div
+    class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden"
+  >
+    <x-navbar>
+    </x-navbar>
+
+    <main class="p-4">
+        <x-alert></x-alert>
+        @yield('content')
+    </main>
+  </div>
+</div>
 </body>
 </html>

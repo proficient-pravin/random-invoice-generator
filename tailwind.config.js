@@ -19,6 +19,8 @@ export default {
   //     },
   //   },
   // },
+  
+darkMode: 'class',
 theme: {
     fontFamily: {
       satoshi: ['Satoshi', 'sans-serif'],

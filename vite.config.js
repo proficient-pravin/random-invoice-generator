@@ -17,6 +17,9 @@ export default defineConfig({
         }),
         
     ],
+    server: {
+        cors: true,  // Enable CORS support
+    },
     resolve: {
         alias: {
           $: path.resolve(__dirname, 'node_modules/jquery'),
