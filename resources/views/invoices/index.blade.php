@@ -1,6 +1,39 @@
 @extends('layouts.master')
 
 @section('content')
+    <!-- Bulk Delete Modal -->
+    <div id="bulkDeleteModal" class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+            <div class="p-6">
+                <form action="{{ route('invoices.bulk-delete') }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label for="invoiceStartNumber" class="block text-sm font-medium text-gray-700">Invoice Start
+                            Number</label>
+                        <input type="number" name="invoice_start_number" id="invoiceStartNumber" required
+                            class="mt-2 block w-full border-gray-300 rounded-lg">
+                    </div>
+                    <div class="mb-4">
+                        <label for="invoiceEndNumber" class="block text-sm font-medium text-gray-700">Invoice End
+                            Number</label>
+                        <input type="number" name="invoice_end_number" id="invoiceEndNumber" required
+                            class="mt-2 block w-full border-gray-300 rounded-lg">
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            Delete
+                        </button>
+                        <button type="button" id="cancelBulkDeleteButton"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal toggle -->
     <button data-modal-target="invoicePreviewModal" data-modal-toggle="invoicePreviewModal" id="openInvoicePreviewModal"
         class="hidden block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
@@ -46,13 +79,15 @@
 
             <!-- Back Button on the right -->
             <div class="flex flex-col md:flex-row space-y-4 md:space-x-4 md:space-y-0">
+                <button id="openBulkDeleteModal" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    Bulk Delete Invoices
+                </button>
                 <a href="{{ route('dashboard') }}"
                     class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Back
                 </a>
             </div>
         </div>
-
         <!-- Filters -->
         <div class="flex flex-col md:flex-row justify-left items-center mb-4">
 
@@ -122,6 +157,20 @@
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+    <script>
+        $(document).ready(function () {
+            // Open bulk delete modal
+            $('#openBulkDeleteModal').on('click', function () {
+                $('#bulkDeleteModal').removeClass('hidden');
+            });
+    
+            // Close bulk delete modal
+            $('#closeBulkDeleteModal, #cancelBulkDeleteButton').on('click', function () {
+                $('#bulkDeleteModal').addClass('hidden');
+            });
+        });
+    </script>
+    
     <script>
         $(document).ready(function() {
 

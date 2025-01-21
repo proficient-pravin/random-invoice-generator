@@ -35,9 +35,9 @@
                 </div>
 
                 <!-- Tax Percentage -->
-                <div>
+                <div class="hidden">
                     <label for="tax_percentage" class="block text-sm font-medium text-gray-700">Tax Percentage</label>
-                    <input type="number" step="0.01" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="tax_percentage" required>
+                    <input type="number" value="8.38" step="0.01" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="tax_percentage" required>
                 </div>
 
                 <!-- Total Amount -->

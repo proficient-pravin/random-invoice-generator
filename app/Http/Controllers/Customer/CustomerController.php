@@ -255,7 +255,7 @@ class CustomerController extends Controller
             $customers = array_values($customers);
 
             $filteredCustomers = array_filter($customers, function ($customer) {
-                return ! empty($customer[2]) && ! empty($customer[3]) && ! empty($customer[4]) && ! empty($customer[5]) && ! empty($customer[6]);
+                return ! empty($customer[2]) && ! empty($customer[3]) && ! empty($customer[4]);
             });
 
             $preparedCustomers = [];
