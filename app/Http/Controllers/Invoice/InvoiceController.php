@@ -27,6 +27,8 @@ class InvoiceController extends Controller
                 })
                 ->select('invoices.id', 'invoices.invoice_number', 'invoices.invoice_date', 'invoices.customer_id') // Select the necessary columns
                 ->addSelect(\DB::raw('ROUND(SUM(invoice_items.amount + invoice_items.tax), 2) as total'))           // Calculate the total dynamically from invoice items
+                ->addSelect(\DB::raw('ROUND(SUM(invoice_items.amount), 2) as sub_total'))           // Calculate the total dynamically from invoice items
+                ->addSelect(\DB::raw('ROUND(SUM(invoice_items.tax), 2) as tax'))           // Calculate the total dynamically from invoice items
                 ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')                             // Join invoice_items table to get the amounts
                 ->groupBy('invoices.id')
                 ->get();

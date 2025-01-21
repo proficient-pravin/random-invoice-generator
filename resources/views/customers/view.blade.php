@@ -44,8 +44,8 @@
                 <div class="flex items-center gap-2">
                     <h1 class="text-xl font-semibold">{{ "$customer->first_name $customer->last_name" }}</h1>
                     <span class="text-xs px-2 py-1 rounded text-white"
-                        style="background-color: {{ $customer->tag->bg_color }}">
-                        {{ $customer->tag->name }}
+                        style="background-color: {{ $customer->tag?->bg_color }}">
+                        {{ $customer->tag?->name }}
                     </span>
                 </div>
                 <h1 class="text-xl font-semibold">Total Invoice
@@ -131,6 +131,8 @@
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>
                             <th scope="col" class="px-6 py-3 text-left">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left">Sub Total</th>
+                            <th scope="col" class="px-6 py-3 text-left">Tax</th>
                             <th scope="col" class="px-6 py-3 text-left">Total</th>
                             <th scope="col" class="px-6 py-3 text-left">Action</th>
                         </tr>
@@ -197,6 +199,14 @@
                         data: 'invoice_date',
                         name: 'invoice_date',
                         className: 'text-left'
+                    },
+                    {
+                        data: 'sub_total',
+                        name: 'sub_total'
+                    },
+                    {
+                        data: 'tax',
+                        name: 'tax'
                     },
                     {
                         data: 'total',

@@ -117,6 +117,8 @@
                         <th scope="col" class="px-6 py-3 text-left">Invoice Number</th>
                         <th scope="col" class="px-6 py-3 text-left">Date</th>
                         <th scope="col" class="px-6 py-3 text-left">Customer</th>
+                        <th scope="col" class="px-6 py-3 text-left">Sub Total</th>
+                        <th scope="col" class="px-6 py-3 text-left">Tax</th>
                         <th scope="col" class="px-6 py-3 text-left">Total</th>
                         <th scope="col" class="px-6 py-3 text-left">Action</th>
                     </tr>
@@ -205,6 +207,14 @@
                     {
                         data: 'customer_name',
                         name: 'customer_name'
+                    },
+                    {
+                        data: 'sub_total',
+                        name: 'sub_total'
+                    },
+                    {
+                        data: 'tax',
+                        name: 'tax'
                     },
                     {
                         data: 'total',
