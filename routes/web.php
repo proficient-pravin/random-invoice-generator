@@ -15,8 +15,8 @@ use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Invoice;
 
-Route::get('/generate-invoices', [InvoiceGenerationController::class, 'showForm'])->middleware(['auth', 'verified'])->name('invoices.generate');
-Route::post('/generate-invoices', [InvoiceGenerationController::class, 'generateInvoices'])->middleware(['auth', 'verified'])->name('generate.invoices');
+Route::get('/generate-invoices', [InvoiceGenerationController::class, 'showForm'])->name('invoices.generate');
+Route::post('/generate-invoices', [InvoiceGenerationController::class, 'generateInvoices'])->name('generate.invoices');
 
 Route::post('/update-csv', [InvoiceGenerationController::class, 'updateCsvFiles'])->name('update.csv');
 
