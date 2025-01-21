@@ -41,7 +41,7 @@ class InvoiceGenerationController extends Controller
         // return view('developer', [
         //     'startInvoiceNumber' => $startInvoiceNumber
         // ]);
-        return view('invoices.index', [
+        return view('invoices.generate', [
             'startInvoiceNumber' => $startInvoiceNumber,
         ]);
     }
