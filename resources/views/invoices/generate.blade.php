@@ -45,6 +45,14 @@
                     <label for="total_amount" class="block text-sm font-medium text-gray-700">Total Amount</label>
                     <input type="number" step="0.01" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="total_amount" required>
                 </div>
+                <div>
+                    <label for="print_address_line1" class="block text-sm font-medium text-gray-700">Address Line 1</label>
+                    <input type="text" value="5525 S Decatur Blvd # 106" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="print_address_line1" required>
+                </div>
+                <div>
+                    <label for="print_address_line2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
+                    <input type="text" value="Las Vegas 89118 USA" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="print_address_line2" required>
+                </div>
             </div>
 
             <div class="text-center mt-6">

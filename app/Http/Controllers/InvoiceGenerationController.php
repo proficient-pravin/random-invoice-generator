@@ -438,6 +438,9 @@ class InvoiceGenerationController extends Controller
         if ($zip->open($zipPath, ZipArchive::CREATE) === true) {
             $htmlContent = '';
             foreach ($invoices as $index => $invoice) {
+
+                $invoice['print_address_line1'] = request()->print_address_line1 ?? null;
+                $invoice['print_address_line2'] = request()->print_address_line2 ?? null;
                 // Generate PDF for the invoice
                 $pdf = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
                 $pdfPath = 'pdf_invoice_' . ($index + 1) . '.pdf';
