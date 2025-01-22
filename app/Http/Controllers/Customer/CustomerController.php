@@ -255,32 +255,34 @@ class CustomerController extends Controller
             $customers = array_values($customers);
 
             $filteredCustomers = array_filter($customers, function ($customer) {
-                return ! empty($customer[2]) && ! empty($customer[3]) && ! empty($customer[4]);
+                return ! empty($customer[20]);
             });
 
             $preparedCustomers = [];
             foreach ($filteredCustomers as $customer) {
                 $_customer = [
-                    'email'            => $customer[2] ?? '',
-                    'first_name'       => $customer[3] ?? '',
-                    'last_name'        => $customer[4] ?? '',
-                    'po_attention_to'  => $customer[5] ?? '',
-                    'po_address_line1' => $customer[6] ?? '',
-                    'po_address_line2' => $customer[7] ?? '',
-                    'po_address_line3' => $customer[8] ?? '',
-                    'po_address_line4' => $customer[9] ?? '',
-                    'po_city'          => $customer[10] ?? '',
-                    'po_region'        => $customer[11] ?? '',
-                    'po_zip_code'      => $customer[12] ?? '',
-                    'po_country'       => $customer[13] ?? '',
-                    'sa_address_line1' => $customer[15] ?? '',
-                    'sa_address_line2' => $customer[16] ?? '',
-                    'sa_address_line3' => $customer[17] ?? '',
-                    'sa_address_line4' => $customer[18] ?? '',
-                    'sa_city'          => $customer[19] ?? '',
-                    'sa_region'        => $customer[20] ?? '',
-                    'sa_zip_code'      => $customer[21] ?? '',
-                    'sa_country'       => $customer[22] ?? '',
+                    'email'            => $customer[20] ?? '',
+                    'first_name'       => $customer[44] ?? '',
+                    'last_name'        => $customer[45] ?? '',
+                    'po_attention_to'  => $customer[28] ?? '',
+                    'po_address_line1' => $customer[11] ?? '',
+                    'po_address_line2' => $customer[12] ?? '',
+                    // 'po_address_line3' => $customer[8] ?? '',
+                    // 'po_address_line4' => $customer[9] ?? '',
+                    'po_city'          => $customer[13] ?? '',
+                    'po_region'        => $customer[14] ?? '',
+
+                    'po_zip_code'      => $customer[15] ?? '',
+                    'po_country'       => $customer[17] ?? '',
+
+                    // 'sa_address_line1' => $customer[15] ?? '',
+                    // 'sa_address_line2' => $customer[16] ?? '',
+                    // 'sa_address_line3' => $customer[17] ?? '',
+                    // 'sa_address_line4' => $customer[18] ?? '',
+                    // 'sa_city'          => $customer[19] ?? '',
+                    // 'sa_region'        => $customer[20] ?? '',
+                    // 'sa_zip_code'      => $customer[21] ?? '',
+                    // 'sa_country'       => $customer[22] ?? '',
                 ];
                 array_push($preparedCustomers, $_customer);
                 Customer::updateOrCreate(
