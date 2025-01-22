@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -251,29 +252,38 @@ class CustomerController extends Controller
             // Process the CSV file
             $file      = $request->file('import_file');
             $customers = array_map('str_getcsv', file($file));
-            unset($customers[0]);
-            $customers = array_values($customers);
+            // Extract the header (first row)
+            $header = $customers[0];
+            
+            // Map the header with the subsequent rows
+            $mappedData = array_filter(array_map(function ($row) use ($header) {                
+                if (count($header) !== count($row)) {
+                    // If the counts don't match, ignore this row
+                    return null;
+                }
+                return array_combine($header, $row);
+            }, array_slice($customers, 1)));
 
-            $filteredCustomers = array_filter($customers, function ($customer) {
-                return ! empty($customer[20]);
+            $filteredCustomers = array_filter($mappedData, function ($customer) {
+                return !empty($customer['Contact First Name']);
             });
 
             $preparedCustomers = [];
             foreach ($filteredCustomers as $customer) {
                 $_customer = [
-                    'email'            => $customer[20] ?? '',
-                    'first_name'       => $customer[44] ?? '',
-                    'last_name'        => $customer[45] ?? '',
-                    'po_attention_to'  => $customer[28] ?? '',
-                    'po_address_line1' => $customer[11] ?? '',
-                    'po_address_line2' => $customer[12] ?? '',
+                    'email'            => $customer['Primary Contact Email'] ?? '',
+                    'first_name'       => $customer['Contact First Name'] ?? '',
+                    'last_name'        => $customer['Contact Last Name'] ?? '',
+                    'po_attention_to'  => $customer['Contact First Name'] ." ". $customer['Contact Last Name'] ?? '',
+                    'po_address_line1' => $customer['52 Fadem Road'] ?? '',
+                    'po_address_line2' => $customer['Street 1'] ?? '',
                     // 'po_address_line3' => $customer[8] ?? '',
                     // 'po_address_line4' => $customer[9] ?? '',
-                    'po_city'          => $customer[13] ?? '',
-                    'po_region'        => $customer[14] ?? '',
+                    'po_city'          => $customer['City'] ?? '',
+                    'po_region'        => $customer['State'] ?? '',
 
-                    'po_zip_code'      => $customer[15] ?? '',
-                    'po_country'       => $customer[17] ?? '',
+                    'po_zip_code'      => $customer['ZIP'] ?? '',
+                    'po_country'       => $customer['Country'] ?? '',
 
                     // 'sa_address_line1' => $customer[15] ?? '',
                     // 'sa_address_line2' => $customer[16] ?? '',
@@ -285,11 +295,33 @@ class CustomerController extends Controller
                     // 'sa_country'       => $customer[22] ?? '',
                 ];
                 array_push($preparedCustomers, $_customer);
-                Customer::updateOrCreate(
-                    ['email' => $_customer['email']],
-                    $_customer
-                );
+                try {
+                    if (!empty(trim($_customer['email']))) {
+                        Customer::updateOrCreate(
+                            [
+                                'email' => $_customer['email'] ?: null, // Default to null if email is empty
+                            ],
+                            $_customer
+                        );
+                    } else {
+                        Customer::updateOrCreate(
+                            [
+                                'first_name' => trim($_customer['first_name']),
+                                'last_name' => trim($_customer['last_name']),
+                            ],
+                            $_customer
+                        );
+                    }
+                } catch (\Illuminate\Database\QueryException $e) {
+                    if ($e->getCode() === '23000') {
+                        Log::error('Duplicate entry detected for customer', [
+                            'error' => $e->getMessage(),
+                            'customer' => $_customer,
+                        ]);
+                    }
+                }             
             }
+
 
             return redirect()->route('customers.index')->with('success', 'Customers imported successfully!');
         } catch (\Exception $e) {
