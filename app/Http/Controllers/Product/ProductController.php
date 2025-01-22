@@ -97,27 +97,48 @@ class ProductController extends Controller
             
             // Extract the header (first row)
             $header = $data[0];
-
+            
             // Map the header with the subsequent rows
-            $mappedData = array_map(function ($row) use ($header) {
+            $mappedData = array_filter(array_map(function ($row) use ($header) {                
+                if (count($header) !== count($row)) {
+                    // If the counts don't match, ignore this row
+                    return null;
+                }
                 return array_combine($header, $row);
-            }, array_slice($data, 1));
+            }, array_slice($data, 1)));
+            
 
             // Validate and process each row (Skipping headers)
             foreach ($mappedData as $row) {
-                if (empty($row['ItemName']) || empty($row['SalesUnitPrice'])) {
+                if (empty($row['Product Name']) || empty($row['Price ($)'])) {
                     continue;
                 }
 
                 // Insert or update project logic
                 Product::updateOrCreate(
-                    ['product_name' => $row['ItemName']],
+                    ['product_name' => $row['Product Name']],
                     [
-                        'product_name' => $row['ItemName'],
-                        'unit_price' => floatval(str_replace(",","",$row['SalesUnitPrice'])),
+                        'product_name' => $row['Product Name'],
+                        'unit_price' => floatval(str_replace(",","",$row['Price ($)'])),
                     ]
                 );
             }
+
+            // // Validate and process each row (Skipping headers)
+            // foreach ($mappedData as $row) {
+            //     if (empty($row['ItemName']) || empty($row['SalesUnitPrice'])) {
+            //         continue;
+            //     }
+
+            //     // Insert or update project logic
+            //     Product::updateOrCreate(
+            //         ['product_name' => $row['ItemName']],
+            //         [
+            //             'product_name' => $row['ItemName'],
+            //             'unit_price' => floatval(str_replace(",","",$row['SalesUnitPrice'])),
+            //         ]
+            //     );
+            // }
 
             return redirect()->route('products.index')->with('success', 'Products imported successfully!');
         } catch (\Exception $e) {
