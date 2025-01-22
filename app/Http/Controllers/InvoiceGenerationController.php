@@ -17,18 +17,26 @@ use ZipArchive;
 class InvoiceGenerationController extends Controller
 {
 
-    // Declare global properties in the controller
-    protected $allCustomers;
-    protected $allProducts;
+   // Declare global properties
+   protected $allCustomers;
+   protected $allProducts;
+   protected $shuffledCustomers = [];
+   protected $shuffledProducts = [];
+   protected $customerIndex = 0;
+   protected $productIndex = 0;
 
     /**
      * Constructor to initialize data.
      */
     public function __construct()
     {
-        // Load the customers and products once in the constructor
-        $this->allCustomers = Customer::all()->toArray();
-        $this->allProducts = Product::all()->toArray();
+       // Load the customers and products once in the constructor
+       $this->allCustomers = Customer::whereNotNull('first_name')->get()->toArray();
+       $this->allProducts = Product::all()->toArray();
+
+       // Shuffle the customers and products initially
+       $this->shuffleCustomers();
+       $this->shuffleProducts();
     }
 
     public function showForm()
@@ -36,7 +44,12 @@ class InvoiceGenerationController extends Controller
         // $pdf = Pdf::loadView('invoice_template_final2');
         // return $pdf->stream('invoice-' . time() . '.pdf');
 
-        $startInvoiceNumber = Invoice::max('invoice_number') + 1; // Default to 50 if not found
+        $startInvoiceNumber = Invoice::select(DB::raw('CAST(invoice_number AS UNSIGNED) as invoice_number'))
+        ->orderBy('invoice_number', 'desc')
+        ->value('invoice_number');
+        
+        $startInvoiceNumber = $startInvoiceNumber ? $startInvoiceNumber + 1 : 1;
+
 
         // return view('developer', [
         //     'startInvoiceNumber' => $startInvoiceNumber
@@ -78,6 +91,7 @@ class InvoiceGenerationController extends Controller
         set_time_limit(0);
         ini_set('memory_limit', '-1'); // Unlimited memory
 
+        DB::beginTransaction();
         try {
 
             // Validate user input
@@ -124,6 +138,7 @@ class InvoiceGenerationController extends Controller
             // Calculate the total amount of generated invoices
             $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
             $this->storeInvoices($invoices);
+            DB::commit();
             return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
 
             $invoice = collect($invoices[0]);
@@ -133,6 +148,7 @@ class InvoiceGenerationController extends Controller
             return $pdf->stream('invoice-' . time() . '.pdf');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
     }
@@ -344,46 +360,21 @@ class InvoiceGenerationController extends Controller
         return $randomDate;
     }
 
+    /**
+     * Get the next random customer in sequence.
+     */
     public function getRandomCustomer(): ?array
     {
-        // $customers = $this->csvToArray('customers.csv');
+        // If we've reached the end of the shuffled list, reshuffle
+        if ($this->customerIndex >= count($this->shuffledCustomers)) {
+            $this->shuffleCustomers();
+        }
 
-        // // Filter out customers where index 2, 3, or 4 is empty
-        // $filtered_customers = array_filter($customers, function ($customer) {
-        //     return !empty($customer[2]) && !empty($customer[3]) && !empty($customer[4]) && !empty($customer[5]) && !empty($customer[6]);
-        // });
+        // Get the current customer
+        $selectedCustomer = $this->shuffledCustomers[$this->customerIndex];
 
-        // $rand = array_rand($filtered_customers);
-
-        // return [
-        //     'email' => $filtered_customers[$rand][2] ?? '',
-        //     'first_name' => $filtered_customers[$rand][3] ?? '',
-        //     'last_name' => $filtered_customers[$rand][4] ?? '',
-        //     'full_name' => "{$filtered_customers[$rand][3]} {$filtered_customers[$rand][4]}",
-        //     'po_attention_to' => $filtered_customers[$rand][5] ?? '',
-        //     'po_address_line1' => $filtered_customers[$rand][6] ?? '',
-        //     'po_address_line2' => $filtered_customers[$rand][7] ?? '',
-        //     'po_address_line3' => $filtered_customers[$rand][8] ?? '',
-        //     'po_address_line4' => $filtered_customers[$rand][9] ?? '',
-        //     'po_city' => $filtered_customers[$rand][10] ?? '',
-        //     'po_region' => $filtered_customers[$rand][11] ?? '',
-        //     'po_zip_code' => $filtered_customers[$rand][12] ?? '',
-        //     'po_country' => $filtered_customers[$rand][13] ?? '',
-        //     'sa_attention_to' => $filtered_customers[$rand][14] ?? '',
-        //     'sa_address_line1' => $filtered_customers[$rand][15] ?? '',
-        //     'sa_address_line2' => $filtered_customers[$rand][16] ?? '',
-        //     'sa_address_line3' => $filtered_customers[$rand][17] ?? '',
-        //     'sa_address_line4' => $filtered_customers[$rand][18] ?? '',
-        //     'sa_city' => $filtered_customers[$rand][19] ?? '',
-        //     'sa_region' => $filtered_customers[$rand][20] ?? '',
-        //     'sa_zip_code' => $filtered_customers[$rand][21] ?? '',
-        //     'sa_country' => $filtered_customers[$rand][22] ?? '',
-        // ];
-
-        // Assuming $this->allCustomers is an array of customer data
-        $filtered_customers = $this->allCustomers;
-        $rand = array_rand($filtered_customers);
-        $selectedCustomer = $filtered_customers[$rand];
+        // Increment the index for the next call
+        $this->customerIndex++;
 
         return [
             'customer_id' => $selectedCustomer['id'] ?? '',
@@ -412,74 +403,25 @@ class InvoiceGenerationController extends Controller
         ];
     }
 
+    /**
+     * Get the next random product in sequence.
+     */
     public function getRandomProduct(): ?array
     {
-        // $products = $this->csvToArray('products.csv', ',', true);
-        // $filtered_products = array_filter(
-        //     array_map(function ($customer) {
-        //         $customer['SalesUnitPrice'] = floatval(str_replace(',', '', $customer['SalesUnitPrice']));
-        //         return $customer;
-        //     }, $products),
-        //     function ($customer) {
-        //         return !empty($customer['SalesUnitPrice']) && !empty($customer['ItemName']);
-        //     }
-        // );
-        // return $products[array_rand($filtered_products)];
-
-        $filtered_products = $this->allProducts;
-        $rand = array_rand($filtered_products);
-        return $filtered_products[$rand];
-    }
-
-    /**
-     * Convert CSV file to array
-     *
-     * @param string $filename Name of the CSV file in public folder
-     * @param string $delimiter CSV delimiter (default: ',')
-     * @param bool $includeHeaders Whether to include headers as keys (default: true)
-     * @return array|null Returns array of CSV data or null if file not found
-     */
-    private function csvToArray(string $filename, string $delimiter = ',', bool $includeHeaders = false): ?array
-    {
-        $filePath = public_path($filename);
-
-        if (!file_exists($filePath)) {
-            return null;
+        // If we've reached the end of the shuffled list, reshuffle
+        if ($this->productIndex >= count($this->shuffledProducts)) {
+            $this->shuffleProducts();
         }
 
-        $data = [];
-        $headers = [];
+        // Get the current product
+        $product = $this->shuffledProducts[$this->productIndex];
 
-        if (($handle = fopen($filePath, "r")) !== false) {
-            if ($includeHeaders) {
-                // Get headers and use them as keys
-                $headers = fgetcsv($handle, 0, $delimiter);
-                $headerCount = count($headers);
-            } else {
-                // Skip the header row but don't use it
-                fgetcsv($handle, 0, $delimiter);
-            }
+        // Increment the index for the next call
+        $this->productIndex++;
 
-            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-                if ($includeHeaders) {
-                    // Pad the row with null values if it's shorter than headers
-                    $rowCount = count($row);
-                    if ($rowCount < $headerCount) {
-                        $row = array_pad($row, $headerCount, null);
-                    }
-                    // Use headers as keys
-                    $rowData = array_combine($headers, $row);
-                    $data[] = $rowData;
-                } else {
-                    // Just add the row as is
-                    $data[] = $row;
-                }
-            }
-
-            fclose($handle);
-        }
-        return $data;
+        return $product;
     }
+
     /**
      * Generate invoices as PDFs, bundle them into a ZIP file, and return for download.
      *
@@ -550,8 +492,11 @@ class InvoiceGenerationController extends Controller
 
         foreach ($invoices as $invoice) {
             foreach ($invoice['invoice_items'] as $item) {
+                $firstName = $invoice['first_name'];
+                $lastName = $invoice['last_name'];
+                $fullName =  $firstName . ' ' . $lastName;
                 $csvRows[] = [
-                    '702 Print & Marketing LLC',
+                    $fullName,
                     $invoice['email'] ?? '',
                     $invoice['po_address_line1'] ?? '',
                     $invoice['po_address_line2'] ?? '',
@@ -628,5 +573,25 @@ class InvoiceGenerationController extends Controller
             DB::rollBack();
             throw new \Exception('Error creating invoice: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Shuffle the customers.
+     */
+    protected function shuffleCustomers(): void
+    {
+        $this->shuffledCustomers = $this->allCustomers;
+        shuffle($this->shuffledCustomers); // Randomly shuffle the customers
+        $this->customerIndex = 0; // Reset the index
+    }
+
+    /**
+     * Shuffle the products.
+     */
+    protected function shuffleProducts(): void
+    {
+        $this->shuffledProducts = $this->allProducts;
+        shuffle($this->shuffledProducts); // Randomly shuffle the products
+        $this->productIndex = 0; // Reset the index
     }
 }
