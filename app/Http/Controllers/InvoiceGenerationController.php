@@ -441,6 +441,8 @@ class InvoiceGenerationController extends Controller
 
                 $invoice['print_address_line1'] = request()->print_address_line1 ?? null;
                 $invoice['print_address_line2'] = request()->print_address_line2 ?? null;
+                $invoice['print_address_line3'] = request()->print_address_line3 ?? null;
+                $invoice['print_address_line4'] = request()->print_address_line4 ?? null;
                 // Generate PDF for the invoice
                 $pdf = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
                 $pdfPath = 'pdf_invoice_' . ($index + 1) . '.pdf';
@@ -554,6 +556,10 @@ class InvoiceGenerationController extends Controller
                     'customer_id' => $_invoices['customer_id'],
                     'invoice_number' => $_invoices['invoice_number'],
                     'invoice_date' => $_invoices['invoice_date'],
+                    'print_address_line1' => request()->print_address_line1,
+                    'print_address_line2' => request()->print_address_line2,
+                    'print_address_line3' => request()->print_address_line3,
+                    'print_address_line4' => request()->print_address_line4,
                 ]);
     
                 // Create invoice items and associate them with the created invoice

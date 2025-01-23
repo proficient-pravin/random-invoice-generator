@@ -68,6 +68,8 @@
                     702 Print &amp; Marketing LLC<br>
                     {{ $invoice['print_address_line1'] ?? '5525 S Decatur Blvd # 106' }}<br>
                     {{ $invoice['print_address_line2'] ?? 'Las Vegas 89118 USA' }}<br>
+                    {{ $invoice['print_address_line3'] ?? '' }}<br>
+                    {{ $invoice['print_address_line4'] ?? '' }}<br>
                     Phone: (702) 945-0936<br>
                     Visit us online: www.print702.com
                 </div>

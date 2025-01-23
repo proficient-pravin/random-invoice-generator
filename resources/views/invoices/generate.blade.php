@@ -53,6 +53,14 @@
                     <label for="print_address_line2" class="block text-sm font-medium text-gray-700">Address Line 2</label>
                     <input type="text" value="Las Vegas 89118 USA" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="print_address_line2" required>
                 </div>
+                <div>
+                    <label for="print_address_line3" class="block text-sm font-medium text-gray-700">Address Line 3</label>
+                    <input type="text" value="" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="print_address_line3">
+                </div>
+                <div>
+                    <label for="print_address_line4" class="block text-sm font-medium text-gray-700">Address Line 4</label>
+                    <input type="text" value="" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="print_address_line4">
+                </div>
             </div>
 
             <div class="text-center mt-6">

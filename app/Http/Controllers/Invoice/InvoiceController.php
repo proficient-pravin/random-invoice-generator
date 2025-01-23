@@ -77,6 +77,10 @@ class InvoiceController extends Controller
             "invoice_number" => $invoice['invoice_number'],
             "customer_id"    => $invoice['customer_id'],
             "invoice_date"   => $invoice['invoice_date'],
+            "print_address_line1"   => $invoice['print_address_line1'],
+            "print_address_line2"   => $invoice['print_address_line2'],
+            "print_address_line3"   => $invoice['print_address_line3'],
+            "print_address_line4"   => $invoice['print_address_line4'],
             "created_at"     => $invoice['created_at'],
             "updated_at"     => $invoice['updated_at'],
             "invoice_items"  => $invoice['items'], // Renaming items to invoice_items
@@ -109,6 +113,10 @@ class InvoiceController extends Controller
             "invoice_number" => $invoice['invoice_number'],
             "customer_id"    => $invoice['customer_id'],
             "invoice_date"   => $invoice['invoice_date'],
+            "print_address_line1"   => $invoice['print_address_line1'],
+            "print_address_line2"   => $invoice['print_address_line2'],
+            "print_address_line3"   => $invoice['print_address_line3'],
+            "print_address_line4"   => $invoice['print_address_line4'],
             "created_at"     => $invoice['created_at'],
             "updated_at"     => $invoice['updated_at'],
             "invoice_items"  => $invoice['items'], // Renaming items to invoice_items
