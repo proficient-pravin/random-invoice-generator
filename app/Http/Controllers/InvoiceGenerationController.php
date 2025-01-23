@@ -31,7 +31,7 @@ class InvoiceGenerationController extends Controller
     public function __construct()
     {
        // Load the customers and products once in the constructor
-       $this->allCustomers = Customer::whereNotNull('first_name')->get()->toArray();
+       $this->allCustomers = Customer::whereNotNull('first_name')->limit(request()->num_client ?? PHP_INT_MAX)->get()->toArray();
        $this->allProducts = Product::all()->toArray();
 
        // Shuffle the customers and products initially
@@ -99,7 +99,7 @@ class InvoiceGenerationController extends Controller
                 'start_date' => 'required|date',
                 'end_date' => 'required|date',
                 'start_invoice_number' => 'required|integer',
-                'num_invoices' => 'nullable|integer|max:500',
+                'num_invoices' => 'nullable|integer|max:1000',
                 'total_amount' => 'required',
             ]);
 

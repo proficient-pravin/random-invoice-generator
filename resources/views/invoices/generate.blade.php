@@ -34,6 +34,12 @@
                     <input type="number" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="num_invoices">
                 </div>
 
+                  <!-- Number of Client -->
+                <div>
+                    <label for="num_client" class="block text-sm font-medium text-gray-700">Number of Client</label>
+                    <input type="number" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="num_client">
+                </div>
+
                 <!-- Tax Percentage -->
                 <div class="">
                     <label for="tax_percentage" class="block text-sm font-medium text-gray-700">Tax Percentage</label>
