@@ -345,6 +345,12 @@ class InvoiceGenerationController extends Controller
             return null;
         }
 
+        
+        if(!request()->num_invoices){
+            $rount = intval(request()->total_amount / 56000);
+            $totalNumberOfInvoices =  intval(request()->total_amount / (130 * ($rount ?? 1)));
+        }
+
         // Calculate the total number of days in the range
         $totalDays = floor(($endDate - $startDate) / (60 * 60 * 24)) + 1;
         if ($totalDays < 1) {
@@ -363,6 +369,10 @@ class InvoiceGenerationController extends Controller
 
         // Calculate the random date based on the index of the day
         $randomDate = date('Y-m-d', strtotime("+$dayIndex days", $startDate));
+
+        if(strtotime($randomDate) > $endDate){
+            $randomDate = date('Y-m-d', $endDate);
+        }
         return $randomDate;
     }
 
@@ -636,6 +646,7 @@ class InvoiceGenerationController extends Controller
             // Assign the time and update $previousTime
             $invoice['invoice_time'] = date("H:i", $previousTime);
             $previousTime = ($previousTime + 600 + rand(1,200)); // Increment by 1 minute to ensure next time is later
+            // Log::debug($invoice['invoice_number']." Date: ".$invoice['invoice_date']." Total: ".$invoice['total']);
         }
     
         return $invoices;
