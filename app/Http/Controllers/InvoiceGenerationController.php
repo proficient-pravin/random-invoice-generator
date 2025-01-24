@@ -140,9 +140,9 @@ class InvoiceGenerationController extends Controller
             // $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
             $totalGeneratedAmount = array_sum(array_map('floatval', array_column($invoices, 'total')));
 
-            // $this->storeInvoices($invoices);
-            // DB::commit();
-            // return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
+            $this->storeInvoices($invoices);
+            DB::commit();
+            return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
 
             $invoice = collect($invoices[0]);
             // Pass data to the Blade view for PDF generation
