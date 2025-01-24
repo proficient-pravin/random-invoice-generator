@@ -126,6 +126,7 @@ class InvoiceGenerationController extends Controller
                     $invoiceSequenceStartFrom
                 );
             }
+            $invoices =  $this->assignRandomTimesAscending($invoices);
 
             // Delete existing ZIP files in the directory
             $zipFiles = public_path('*.zip');
@@ -561,6 +562,7 @@ class InvoiceGenerationController extends Controller
                     'customer_id' => $_invoices['customer_id'],
                     'invoice_number' => $_invoices['invoice_number'],
                     'invoice_date' => $_invoices['invoice_date'],
+                    'invoice_time' => $_invoices['invoice_time'] ?? null,
                     'print_address_line1' => request()->print_address_line1,
                     'print_address_line2' => request()->print_address_line2,
                     'print_address_line3' => request()->print_address_line3,
@@ -607,5 +609,35 @@ class InvoiceGenerationController extends Controller
         $this->shuffledProducts = $this->allProducts;
         shuffle($this->shuffledProducts); // Randomly shuffle the products
         $this->productIndex = 0; // Reset the index
+    }
+
+    function assignRandomTimesAscending(&$invoices, $startTime = "08:00", $endTime = "16:30") {
+        // Convert start and end times to timestamps
+        $startTimestamp = strtotime($startTime);
+        $endTimestamp = strtotime($endTime);
+    
+        // Ensure the array is sorted by invoice_number
+        usort($invoices, function ($a, $b) {
+            return $a['invoice_number'] <=> $b['invoice_number'];
+        });
+    
+        $previousTime = $startTimestamp;
+    
+        // Assign random times in ascending order
+        foreach ($invoices as &$invoice) {
+            // Ensure $previousTime does not exceed $endTimestamp
+            if ($previousTime >= $endTimestamp) {
+                $previousTime = $endTimestamp;
+            }
+    
+            // // Generate a random time between $previousTime and $endTimestamp
+            // $randomTime = mt_rand($previousTime, $endTimestamp);
+    
+            // Assign the time and update $previousTime
+            $invoice['invoice_time'] = date("H:i", $previousTime);
+            $previousTime = ($previousTime + 600 + rand(1,200)); // Increment by 1 minute to ensure next time is later
+        }
+    
+        return $invoices;
     }
 }
