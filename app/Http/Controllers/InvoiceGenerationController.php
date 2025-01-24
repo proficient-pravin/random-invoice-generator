@@ -32,7 +32,7 @@ class InvoiceGenerationController extends Controller
     {
        // Load the customers and products once in the constructor
        $this->allCustomers = Customer::whereNotNull('first_name')->limit(request()->num_client ?? PHP_INT_MAX)->get()->toArray();
-       $this->allProducts = Product::all()->toArray();
+       $this->allProducts = Product::where('unit_price' ,'>', 0)->get()->toArray();
 
        // Shuffle the customers and products initially
        $this->shuffleCustomers();
@@ -149,6 +149,7 @@ class InvoiceGenerationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error( $e->getMessage());
             return back()->with('error', $e->getMessage());
         }
     }
