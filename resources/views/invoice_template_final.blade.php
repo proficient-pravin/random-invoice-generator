@@ -237,7 +237,7 @@
                             $randomTime = $randomTime->format('h:i A');
                         }
                     @endphp
-                    PRINTED ON {{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('D, m/d/Y') }}
+                    Created on {{ \Carbon\Carbon::parse($invoice['invoice_date'])->format('D, m/d/Y') }}
                     {{ $randomTime }} BY {{ auth()->user()->name ?? '' }}
                 </div>
             </footer>
