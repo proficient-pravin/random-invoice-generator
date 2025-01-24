@@ -192,7 +192,7 @@
                 </div>
             </div> --}}
             <div style="margin-top: 20px; font-size: 12px; color: #555;">
-                Registered Office: Attention: {{ $invoice['print_address_line1'] ?? '5525 S Decatur Blvd # 106' }}{{ $invoice['print_address_line2'] ?? 'Las Vegas 89118 USA' }}{{ $invoice['print_address_line3'] ?? '' }}{{ $invoice['print_address_line4'] ?? '' }}
+                Registered Office: Attention: {{ "$invoice['print_address_line1'] " ?? '5525 S Decatur Blvd # 106 ' }}{{ "$invoice['print_address_line2'] " ?? 'Las Vegas 89118 USA ' }}{{ "$invoice['print_address_line3'] " ?? ' ' }}{{ "$invoice['print_address_line4'] " ?? ' ' }}
             </div>
         </div>
     </div>
