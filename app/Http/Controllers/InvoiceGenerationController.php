@@ -137,7 +137,9 @@ class InvoiceGenerationController extends Controller
             Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices));
 
             // Calculate the total amount of generated invoices
-            $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
+            // $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
+            $totalGeneratedAmount = array_sum(array_map('floatval', array_column($invoices, 'total')));
+
             $this->storeInvoices($invoices);
             DB::commit();
             return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
@@ -261,8 +263,9 @@ class InvoiceGenerationController extends Controller
                 floatval($taxPercentage)
             );
 
-            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
-            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
+            $subtotal = array_sum(array_map('floatval', array_column($invoiceItems, 'amount')));
+            $totalTax = array_sum(array_map('floatval', array_column($invoiceItems, 'tax')));
+            
 
             $invoices[] = [
                  ...$customer,
@@ -304,8 +307,8 @@ class InvoiceGenerationController extends Controller
                 floatval($taxPercentage)
             );
 
-            $subtotal = array_sum(array_column($invoiceItems, 'amount'));
-            $totalTax = array_sum(array_column($invoiceItems, 'tax'));
+            $subtotal = array_sum(array_map('floatval', array_column($invoiceItems, 'amount')));
+            $totalTax = array_sum(array_map('floatval', array_column($invoiceItems, 'tax')));
 
             // Calculate total for the current invoice
             $currentInvoiceAmount = round($subtotal + $totalTax, 2);
