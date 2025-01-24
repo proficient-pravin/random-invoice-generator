@@ -191,9 +191,15 @@
                     </a>
                 </div>
             </div> --}}
-            <div style="margin-top: 20px; font-size: 12px; color: #555;">
-                Registered Office: Attention: 702 Print &amp; Marketing LLC {{ implode(' ', array_filter([$invoice['print_address_line1'] ?? '5525 S Decatur Blvd # 106', $invoice['print_address_line2'] ?? 'Las Vegas 89118 USA', $invoice['print_address_line3'] ?? '', $invoice['print_address_line4'] ?? ''])) }}
-            </div>
+            <footer style="position: absolute; bottom: 0; width: 100%; text-align: left; font-size: 12px; color: #555;">
+                <div style="margin-bottom: 10px;">
+                    Registered Office: Attention: 702 Print &amp; Marketing LLC 
+                    {{ implode(' ', array_filter([$invoice['print_address_line1'] ?? '5525 S Decatur Blvd # 106', $invoice['print_address_line2'] ?? 'Las Vegas 89118 USA', $invoice['print_address_line3'] ?? '', $invoice['print_address_line4'] ?? ''])) }}
+                </div>
+                <div>
+                    PRINTED ON {{ now()->format('D, m/d/Y h:i A') }} BY {{ auth()->user()->name." ".auth()->user()->last_name ?? 'CREATED BY' }}
+                </div>
+            </footer>
         </div>
     </div>
 </body>
