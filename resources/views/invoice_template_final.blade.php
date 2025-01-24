@@ -197,7 +197,10 @@
                     {{ implode(' ', array_filter([$invoice['print_address_line1'] ?? '5525 S Decatur Blvd # 106', $invoice['print_address_line2'] ?? 'Las Vegas 89118 USA', $invoice['print_address_line3'] ?? '', $invoice['print_address_line4'] ?? ''])) }}
                 </div>
                 <div>
-                    PRINTED ON {{ now()->format('D, m/d/Y h:i A') }} BY {{ auth()->user()->name." ".auth()->user()->last_name ?? 'CREATED BY' }}
+                    @php
+                     $randomTime = \Carbon\Carbon::createFromTime(rand(8, 15), rand(0, 59), 0)->format('h:i A');   
+                    @endphp
+                    PRINTED ON {{ now()->format('D, m/d/Y') }} {{$randomTime}} BY {{ auth()->user()->name ?? '' }}
                 </div>
             </footer>
         </div>
