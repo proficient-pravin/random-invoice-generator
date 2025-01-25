@@ -118,7 +118,7 @@ class InvoiceGenerationController extends Controller
             // $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
             $totalGeneratedAmount = array_sum(array_map('floatval', array_column($invoices, 'total')));
 
-            if(request()->num_invoices == 1){
+            if(request()->debug == 1){
                 return response()->json([
                     array_combine(array_column($invoices, 'invoice_number'), array_column($invoices, 'invoice_date')),
                     $totalGeneratedAmount
