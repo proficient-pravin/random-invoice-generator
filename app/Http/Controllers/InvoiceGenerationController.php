@@ -427,7 +427,6 @@ class InvoiceGenerationController extends Controller
         if ($zip->open($zipPath, ZipArchive::CREATE) === true) {
             $htmlContent = '';
             foreach ($invoices as $index => $invoice) {
-
                 $invoice['print_address_line1'] = request()->print_address_line1 ?? null;
                 $invoice['print_address_line2'] = request()->print_address_line2 ?? null;
                 $invoice['print_address_line3'] = request()->print_address_line3 ?? null;
@@ -435,8 +434,9 @@ class InvoiceGenerationController extends Controller
 
                 if (in_array('single_pdf', request()->output_type ?? [])) {
                     // Generate PDF for the invoice
+                    $name = "[{$invoice['invoice_number']}]_{$invoice['full_name']}_{$invoice['invoice_date']}";
                     $pdf     = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
-                    $pdfPath = 'pdf_invoice_' . ($index + 1) . '.pdf';
+                    $pdfPath = "pdf_{$name}" .'.pdf';
                     
                     // Add the PDF to the ZIP
                     $zip->addFromString($pdfPath, $pdf->output());
@@ -464,7 +464,7 @@ class InvoiceGenerationController extends Controller
             $csvData = $this->generateInvoiceCsv($invoices);
 
             
-            if (in_array('csv', request()->output_type ?? [])) {
+            if (in_array('csv', request()->output_type ?? []) || empty(request()->output_type)) {
                 $csvPath = 'csv_invoice.csv';
                 // Add the CSV to the ZIP
                 $zip->addFromString($csvPath, $csvData);
