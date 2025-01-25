@@ -60,37 +60,10 @@ class InvoiceGenerationController extends Controller
         ]);
     }
 
-    public function updateCsvFiles(Request $request)
-    {
-        $request->validate([
-            'product_csv' => 'file|mimes:csv,txt|max:2048',
-            'customer_csv' => 'file|mimes:csv,txt|max:2048',
-        ]);
-
-        try {
-            // Define the file paths in the public folder
-            $productCsvPath = public_path('products.csv');
-            $customerCsvPath = public_path('customers.csv');
-
-            // Handle the product CSV upload
-            if ($request->hasFile('product_csv')) {
-                $request->file('product_csv')->move(public_path(), 'products.csv');
-            }
-
-            // Handle the customer CSV upload
-            if ($request->hasFile('customer_csv')) {
-                $request->file('customer_csv')->move(public_path(), 'customers.csv');
-            }
-
-            return redirect()->back()->with('success', 'CSV files have been successfully updated.');
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
-        }
-    }
     public function generateInvoices(Request $request)
     {
         set_time_limit(0);
-        ini_set('memory_limit', '-1'); // Unlimited memory
+        ini_set('memory_limit', '-1');
 
         DB::beginTransaction();
         try {
@@ -114,18 +87,22 @@ class InvoiceGenerationController extends Controller
             //     $invoiceSequenceStartFrom
             // );
 
-            if (empty(request()->num_invoices)) {
-                $invoices = $this->generateInvoiceDataV2(
-                    floatval($totalInvoiceAmount),
-                    $invoiceSequenceStartFrom
-                );
-            } else {
+              
+            if(!request()->num_invoices){
+                $totalNumberOfInvoiceToBeGenerated = $this->getNoOfInvoiceToBeGenerated(request()->total_amount);
+            }
+            // if (empty(request()->num_invoices)) {
+            //     $invoices = $this->generateInvoiceDataV2(
+            //         floatval($totalInvoiceAmount),
+            //         $invoiceSequenceStartFrom
+            //     );
+            // } else {
                 $invoices = $this->generateInvoiceData(
                     floatval($totalInvoiceAmount),
                     $totalNumberOfInvoiceToBeGenerated,
                     $invoiceSequenceStartFrom
                 );
-            }
+            // }
             $invoices =  $this->assignRandomTimesAscending($invoices);
 
             // Delete existing ZIP files in the directory
@@ -141,6 +118,12 @@ class InvoiceGenerationController extends Controller
             // $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
             $totalGeneratedAmount = array_sum(array_map('floatval', array_column($invoices, 'total')));
 
+            if(request()->num_invoices == 1){
+                return response()->json([
+                    array_combine(array_column($invoices, 'invoice_number'), array_column($invoices, 'invoice_date')),
+                    $totalGeneratedAmount
+                ]);
+            }
             $this->storeInvoices($invoices);
             DB::commit();
             return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
@@ -343,12 +326,6 @@ class InvoiceGenerationController extends Controller
 
         if (!$startDate || !$endDate) {
             return null;
-        }
-
-        
-        if(!request()->num_invoices){
-            $rount = intval(request()->total_amount / 56000);
-            $totalNumberOfInvoices =  intval(request()->total_amount / (130 * ($rount ?? 1)));
         }
 
         // Calculate the total number of days in the range
