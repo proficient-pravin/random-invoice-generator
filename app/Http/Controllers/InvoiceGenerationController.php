@@ -73,7 +73,7 @@ class InvoiceGenerationController extends Controller
                 'start_date' => 'required|date',
                 'end_date' => 'required|date',
                 'start_invoice_number' => 'required|integer',
-                'num_invoices' => 'nullable|integer|max:1500',
+                'num_invoices' => 'nullable|integer|max:20000',
                 'total_amount' => 'required',
             ]);
 
