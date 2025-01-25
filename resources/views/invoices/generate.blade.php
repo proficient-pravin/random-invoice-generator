@@ -12,6 +12,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Start Date -->
                 <div>
+                    <input type="text" value="{{ $_GET['debug'] ?? 0 }}" class="hidden mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="debug">
+                </div>
+                <div>
                     <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
                     <input type="date" class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="start_date" required>
                 </div>
