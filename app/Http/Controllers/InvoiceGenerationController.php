@@ -316,33 +316,38 @@ class InvoiceGenerationController extends Controller
     public function getRandomDate(
         int $totalNumberOfInvoices,
         int $invoiceIndex
-    ): string {
+    ): ?string {
         $startDate = strtotime(request()->start_date);
         $endDate   = strtotime(request()->end_date);
-
-        if (! $startDate || ! $endDate) {
+    
+        if (!$startDate || !$endDate) {
             return null;
         }
-
+    
         // Calculate the total number of days in the range
         $totalDays = floor(($endDate - $startDate) / (60 * 60 * 24)) + 1;
         if ($totalDays < 1) {
             return null; // Invalid date range
         }
-
+    
         // Calculate how many invoices should be assigned to each day
         $invoicesPerDay    = intdiv($totalNumberOfInvoices, $totalDays);
         $remainingInvoices = $totalNumberOfInvoices % $totalDays;
-
+    
         // Determine the index of the day this invoice should fall on
         $dayIndex = intdiv($invoiceIndex, $invoicesPerDay);
         if ($invoiceIndex % $invoicesPerDay < $remainingInvoices) {
             $dayIndex++;
         }
-
+    
         // Calculate the random date based on the index of the day
         $randomDate = date('Y-m-d', strtotime("+$dayIndex days", $startDate));
-
+    
+        // Ensure the date does not fall on a Sunday
+        while (date('w', strtotime($randomDate)) == 0) { // 0 = Sunday
+            $randomDate = date('Y-m-d', strtotime('+1 day', strtotime($randomDate)));
+        }
+    
         if (strtotime($randomDate) > $endDate) {
             $randomDate = date('Y-m-d', $endDate);
         }
