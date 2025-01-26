@@ -74,12 +74,12 @@
                         <div class="mt-2 space-y-2">
                             <div class="flex items-center">
                                 <input id="all_pdfs" name="output_type[]" value="all_pdfs" type="checkbox"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" checked>
                                 <label for="all_pdfs" class="ml-2 text-sm text-gray-700">All PDFs</label>
                             </div>
                             <div class="flex items-center">
                                 <input id="csv" name="output_type[]" value="csv" type="checkbox"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" checked>
                                 <label for="csv" class="ml-2 text-sm text-gray-700">CSV</label>
                             </div>
                             <div class="flex items-center">

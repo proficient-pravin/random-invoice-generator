@@ -67,6 +67,7 @@ Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function
     Route::get('/{invoice}/download', [InvoiceController::class, 'download'])->name('download');
     Route::get('/{invoice}/preview', [InvoiceController::class, 'preview'])->name('preview');
     Route::post('/bulk-delete', [InvoiceController::class, 'bulkDelete'])->name('bulk-delete');
+    Route::post('/export', [InvoiceController::class, 'export'])->name('export');
 });
 
 require __DIR__.'/auth.php';

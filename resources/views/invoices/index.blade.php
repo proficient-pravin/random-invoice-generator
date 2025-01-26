@@ -1,6 +1,49 @@
 @extends('layouts.master')
 
 @section('content')
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Export Invoices</h2>
+                <form id="exportForm" action="{{ route('invoices.export') }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label for="exportDaterange" class="block text-sm font-medium text-gray-700">Date Range</label>
+                        <input type="text" id="exportDaterange" name="export_daterange" required
+                            class="mt-2 block w-full border-gray-300 rounded-lg">
+                    </div>
+                    <div class="mb-4">
+                        <span class="block text-sm font-medium text-gray-700">Export Type</span>
+                        <div class="mt-2 space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="output_type[]" value="csv" class="mr-2" checked>
+                                All CSV
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="output_type[]" value="all_pdfs" class="mr-2" checked>
+                                All PDFs
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="output_type[]" value="single_pdf" class="mr-2">
+                                Single PDFs
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" id="cancelExportButton"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Export
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Bulk Delete Modal -->
     <div id="bulkDeleteModal" class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-lg">
@@ -79,7 +122,11 @@
 
             <!-- Back Button on the right -->
             <div class="flex flex-col md:flex-row space-y-4 md:space-x-4 md:space-y-0">
-                <button id="openBulkDeleteModal" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                <button id="openExportModal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Export Invoices
+                </button>
+                <button id="openBulkDeleteModal"
+                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
                     Bulk Delete Invoices
                 </button>
                 <a href="{{ route('dashboard') }}"
@@ -160,19 +207,19 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Open bulk delete modal
-            $('#openBulkDeleteModal').on('click', function () {
+            $('#openBulkDeleteModal').on('click', function() {
                 $('#bulkDeleteModal').removeClass('hidden');
             });
-    
+
             // Close bulk delete modal
-            $('#closeBulkDeleteModal, #cancelBulkDeleteButton').on('click', function () {
+            $('#closeBulkDeleteModal, #cancelBulkDeleteButton').on('click', function() {
                 $('#bulkDeleteModal').addClass('hidden');
             });
         });
     </script>
-    
+
     <script>
         $(document).ready(function() {
 
@@ -280,6 +327,36 @@
             // Apply filters
             $('#customerFilter, #daterange').on('change', function() {
                 table.ajax.reload();
+            });
+
+            // Open export modal
+            $('#openExportModal').on('click', function() {
+                $('#exportModal').removeClass('hidden');
+            });
+
+            // Close export modal
+            $('#cancelExportButton').on('click', function() {
+                $('#exportModal').addClass('hidden');
+            });
+
+            // Initialize Date Range Picker for export modal
+            $('#exportDaterange').daterangepicker({
+                locale: {
+                    format: 'YYYY-MM-DD'
+                },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                        'month').endOf('month')]
+                },
+                alwaysShowCalendars: true,
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+                showDropdowns: true,
             });
         });
     </script>
