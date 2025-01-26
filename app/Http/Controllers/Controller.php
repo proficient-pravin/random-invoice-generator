@@ -93,50 +93,59 @@ abstract class Controller
         return response()->json(['error' => 'Failed to create ZIP file'], 500);
     }
 
-    /**
-     * Generate CSV content for an invoice.
-     *
-     * @param array $invoice Invoice data.
-     * @return string CSV content.
-     */
     private function generateInvoiceCsv(array $invoices): string
     {
         $csvHeader = [
             'ContactName', 'EmailAddress', 'POAddressLine1', 'POAddressLine2', 'POAddressLine3', 'POAddressLine4',
             'POCity', 'PORegion', 'POPostalCode', 'POCountry', 'InvoiceNumber', 'Reference', 'InvoiceDate',
-            'DueDate', 'Description', 'Quantity', 'UnitAmount', 'Discount', 'TaxAmount', 'Total',
+            'DueDate', 'ItemsDescription', 'TotalQuantity', 'TotalAmount', 'Discount', 'TotalTaxAmount', 'GrandTotal',
         ];
 
         $csvRows = [];
 
         foreach ($invoices as $invoice) {
+            $firstName = $invoice['first_name'];
+            $lastName  = $invoice['last_name'];
+            $fullName  = $firstName . ' ' . $lastName;
+
+            // Concatenate all item details into one string
+            $itemsDescription = '';
+            $totalQuantity    = 0;
+            $totalAmount      = 0;
+            $totalTaxAmount   = 0;
+
             foreach ($invoice['invoice_items'] as $item) {
-                $firstName = $invoice['first_name'];
-                $lastName  = $invoice['last_name'];
-                $fullName  = $firstName . ' ' . $lastName;
-                $csvRows[] = [
-                    $fullName,
-                    $invoice['email'] ?? '',
-                    $invoice['po_address_line1'] ?? '',
-                    $invoice['po_address_line2'] ?? '',
-                    $invoice['po_address_line3'] ?? '',
-                    $invoice['po_address_line4'] ?? '',
-                    $invoice['po_city'] ?? '',
-                    $invoice['po_region'] ?? '',
-                    $invoice['po_zip_code'] ?? '',
-                    $invoice['po_country'] ?? '',
-                    $invoice['invoice_number'] ?? '',
-                    '', // Reference field is empty in the provided data
-                    $invoice['invoice_date'] ?? '',
-                    $invoice['invoice_date'] ?? '', // Assuming DueDate matches InvoiceDate
-                    $item['description'] ?? '',
-                    $item['quantity'] ?? '',
-                    $item['unit_price'] ?? '',
-                    '', // Discount field is empty in the provided data
-                    $item['tax'] ?? '',
-                    $item['amount'] ?? '',
-                ];
+                $itemsDescription .= $item['description'] . ' (Qty: ' . $item['quantity'] . ', Price: ' . $item['unit_price'] . '), ';
+                $totalQuantity += $item['quantity'];
+                $totalAmount += $item['amount'];
+                $totalTaxAmount += $item['tax'];
             }
+
+            // Remove the trailing comma and space from item descriptions
+            $itemsDescription = rtrim($itemsDescription, ', ');
+
+            $csvRows[] = [
+                $fullName,
+                $invoice['email'] ?? '',
+                $invoice['po_address_line1'] ?? '',
+                $invoice['po_address_line2'] ?? '',
+                $invoice['po_address_line3'] ?? '',
+                $invoice['po_address_line4'] ?? '',
+                $invoice['po_city'] ?? '',
+                $invoice['po_region'] ?? '',
+                $invoice['po_zip_code'] ?? '',
+                $invoice['po_country'] ?? '',
+                $invoice['invoice_number'] ?? '',
+                '', // Reference field is empty in the provided data
+                $invoice['invoice_date'] ?? '',
+                $invoice['invoice_date'] ?? '', // Assuming DueDate matches InvoiceDate
+                $itemsDescription,              // Combined item descriptions
+                $totalQuantity,                 // Total quantity
+                $totalAmount,                   // Total amount for all items
+                '',                             // Discount field is empty in the provided data
+                $totalTaxAmount,                // Total tax amount for all items
+                $totalAmount + $totalTaxAmount, // Grand Total (Total Amount + Tax)
+            ];
         }
 
         // Open a memory stream to write CSV data
