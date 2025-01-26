@@ -209,7 +209,7 @@ class InvoiceController extends Controller
             ->addSelect(\DB::raw('ROUND(SUM(invoice_items.tax), 2) as total_tax'))
             ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->groupBy('invoices.id')
-            ->limit(50)
+            // ->limit(50)
             ->get()
             ->map(function ($invoice) {
                 $invoice->invoice_items = $invoice->items->map(function ($item) {
