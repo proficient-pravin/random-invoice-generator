@@ -117,8 +117,8 @@ abstract class Controller
             foreach ($invoice['invoice_items'] as $item) {
                 $itemsDescription .= $item['description'] . ' (Qty: ' . $item['quantity'] . ', Price: ' . $item['unit_price'] . '), ';
                 $totalQuantity += $item['quantity'];
-                $totalAmount += $item['amount'];
-                $totalTaxAmount += $item['tax'];
+                $totalAmount += (float) str_replace([',', ' '], '', $item['amount']);
+                $totalTaxAmount += (float) str_replace([',', ' '], '', $item['tax']);
             }
 
             // Remove the trailing comma and space from item descriptions

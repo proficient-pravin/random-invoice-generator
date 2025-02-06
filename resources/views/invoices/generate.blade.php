@@ -121,9 +121,10 @@
 
                 <div class="text-center mt-6">
                     <!-- Submit Button -->
-                    <button type="submit"
-                        class="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 focus:outline-none">Generate
-                        Invoices</button>
+                    <button type="submit" id="submitButton"
+                        class="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 focus:outline-none">
+                        Generate Invoices
+                    </button>
                 </div>
             </form>
 
@@ -165,4 +166,11 @@
         </div>
     </div> --}}
     </div>
+    <script>
+        document.getElementById('invoiceForm').addEventListener('submit', function() {
+            let submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true; // Disable the button
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed'); // Add styles for disabled state
+        });
+    </script>
 @endsection
