@@ -19,7 +19,7 @@ class InvoiceController extends Controller
         try {
             if (request()->ajax()) {
                 $invoices = Invoice::with('customer', 'items')
-                    ->when(! empty(request()->customer), function ($q) {
+                    ->when(is_array(request()->customer) && !empty(request()->customer), function ($q) {
                         $q->whereHas('customer', function ($q) {
                             $q->whereIn('id', request()->customer);
                         });
@@ -32,7 +32,7 @@ class InvoiceController extends Controller
                     ->addSelect(\DB::raw('ROUND(SUM(invoice_items.amount), 2) as sub_total'))                           // Calculate the total dynamically from invoice items
                     ->addSelect(\DB::raw('ROUND(SUM(invoice_items.tax), 2) as tax'))                                    // Calculate the total dynamically from invoice items
                     ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')                             // Join invoice_items table to get the amounts
-                    ->groupBy('invoices.id')
+                    ->groupBy('invoices.id', 'invoices.invoice_number', 'invoices.invoice_date', 'invoices.customer_id')
                     ->get();
 
                 return DataTables::of($invoices)
