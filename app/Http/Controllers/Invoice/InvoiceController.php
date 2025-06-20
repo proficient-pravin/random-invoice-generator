@@ -16,9 +16,8 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        if (request()->ajax()) {
-            try{
-
+        try {
+            if (request()->ajax()) {
                 $invoices = Invoice::with('customer', 'items')
                     ->when(! empty(request()->customer), function ($q) {
                         $q->whereHas('customer', function ($q) {
@@ -35,7 +34,7 @@ class InvoiceController extends Controller
                     ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')                             // Join invoice_items table to get the amounts
                     ->groupBy('invoices.id')
                     ->get();
-    
+
                 return DataTables::of($invoices)
                     ->addColumn('customer_name', function ($invoice) {
                         return $invoice->customer->first_name . " " . $invoice->customer->last_name; // Return the full name of the customer
@@ -57,14 +56,14 @@ class InvoiceController extends Controller
                         return view('invoices.actions', compact('customer'));
                     })
                     ->make(true);
-            }catch(\Exception $e){
-                Log::error($e->getMessage());
             }
-        }
 
-        return view('invoices.index', [
-            'customers' => Customer::all(),
-        ]);
+            return view('invoices.index', [
+                'customers' => Customer::all(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /**
@@ -215,7 +214,7 @@ class InvoiceController extends Controller
             ->addSelect(\DB::raw('ROUND(SUM(invoice_items.tax), 2) as total_tax'))
             ->join('invoice_items', 'invoice_items.invoice_id', '=', 'invoices.id')
             ->groupBy('invoices.id')
-            // ->limit(50)
+        // ->limit(50)
             ->get()
             ->map(function ($invoice) {
                 $invoice->invoice_items = $invoice->items->map(function ($item) {
