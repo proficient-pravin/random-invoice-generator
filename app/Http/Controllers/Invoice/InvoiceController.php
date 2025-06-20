@@ -37,18 +37,18 @@ class InvoiceController extends Controller
 
                 return DataTables::of($invoices)
                     ->addColumn('customer_name', function ($invoice) {
-                        return $invoice->customer->first_name . " " . $invoice->customer->last_name; // Return the full name of the customer
+                        return $invoice?->customer?->first_name . " " . $invoice?->customer?->last_name; // Return the full name of the customer
                     })
                     ->addColumn('invoice_items', function ($invoice) {
-                        return $invoice->items->map(function ($item) {
+                        return $invoice?->items?->map(function ($item) {
                             return [
-                                'name'           => $item->name,
-                                'description'    => $item->description,
-                                'quantity'       => $item->quantity,
-                                'unit_price'     => $item->unit_price,
-                                'tax'            => $item->tax,
-                                'tax_percentage' => $item->tax_percentage,
-                                'amount'         => $item->amount,
+                                'name'           => $item?->name,
+                                'description'    => $item?->description,
+                                'quantity'       => $item?->quantity,
+                                'unit_price'     => $item?->unit_price,
+                                'tax'            => $item?->tax,
+                                'tax_percentage' => $item?->tax_percentage,
+                                'amount'         => $item?->amount,
                             ];
                         });
                     })
