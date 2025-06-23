@@ -156,13 +156,14 @@
                             {{ $invoice_item['quantity'] }}</td>
                         <td
                             style="padding: 8px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">
-                            {{ $invoice_item['unit_price'] }}</td>
+                            {{ number_format($invoice_item['unit_price'], 2, '.', ',') }}
+                        </td>
                         <td
                             style="padding: 8px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">
                             {{ $invoice_item['tax_percentage'] }}%</td>
                         <td
                             style="padding: 8px; font-size: 14px; border-bottom: 1px solid rgb(194, 187, 187); text-align: right;">
-                            {{ $invoice_item['amount'] }}</td>
+                            {{ number_format($invoice_item['amount'], 2, '.', ',') }}</td>
                     </tr>
                 @endforeach
                 <tr>
@@ -170,14 +171,16 @@
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px; text-align: right; font-size: 14px;">Subtotal</td>
-                    <td style="padding: 8px; text-align: right;">{{ $invoice['subtotal'] }}</td>
+                    <td style="padding: 8px; text-align: right;">{{ number_format($invoice['subtotal'], 2, '.', ',') }}
+                    </td>
                 </tr>
                 <tr>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px; text-align: right; font-size: 14px;">TOTAL TAX</td>
-                    <td style="padding: 8px; text-align: right; font-size: 14px;">{{ $invoice['total_tax'] }}</td>
+                    <td style="padding: 8px; text-align: right; font-size: 14px;">
+                        {{ number_format($invoice['total_tax'], 2, '.', ',') }}</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px;"></td>
@@ -192,7 +195,7 @@
                     <td style="padding: 8px;"></td>
                     <td style="padding: 8px; font-size: 14px; font-weight: bold; text-align: right;">TOTAL USD</td>
                     <td style="padding: 8px; font-size: 14px; font-weight: bold; text-align: right;">
-                        {{ $invoice['total'] }}</td>
+                        {{ number_format($invoice['total'], 2, '.', ',') }} </td>
                 </tr>
             </tbody>
         </table>

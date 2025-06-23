@@ -52,6 +52,9 @@ class CloneRemoteDatabase2 extends Command
         foreach ($tables as $tableObj) {
             $tableName = $tableObj->$tableKey;
             $this->info("Cloning table: {$tableName}");
+            if($tableName == 'invoices' || $tableName == 'invoice_items') {
+                continue;
+            }
 
             try {
                 $data = $remote->table($tableName)->get();

@@ -19,7 +19,7 @@ class InvoiceController extends Controller
         try {
             if (request()->ajax()) {
                 $invoices = Invoice::with('customer', 'items')
-                    ->when(is_array(request()->customer) && !empty(request()->customer), function ($q) {
+                    ->when(is_array(request()->customer) && ! empty(request()->customer), function ($q) {
                         $q->whereHas('customer', function ($q) {
                             $q->whereIn('id', request()->customer);
                         });
@@ -89,9 +89,9 @@ class InvoiceController extends Controller
             "created_at"          => $invoice['created_at'],
             "updated_at"          => $invoice['updated_at'],
             "invoice_items"       => $invoice['items'], // Renaming items to invoice_items
-            'subtotal'            => number_format($subtotal, 2, '.', ','),
-            'total_tax'           => number_format($totalTax, 2, '.', ','),
-            'total'               => number_format(($subtotal + $totalTax), 2, '.', ','),
+            'subtotal'            => $subtotal,
+            'total_tax'           => $totalTax,
+            'total'               => ($subtotal + $totalTax),
         ]);
 
         // Generate PDF for the invoice
@@ -126,9 +126,9 @@ class InvoiceController extends Controller
             "created_at"          => $invoice['created_at'],
             "updated_at"          => $invoice['updated_at'],
             "invoice_items"       => $invoice['items'], // Renaming items to invoice_items
-            'subtotal'            => number_format($subtotal, 2, '.', ','),
-            'total_tax'           => number_format($totalTax, 2, '.', ','),
-            'total'               => number_format(($subtotal + $totalTax), 2, '.', ','),
+            'subtotal'            => $subtotal,
+            'total_tax'           => $totalTax,
+            'total'               => ($subtotal + $totalTax),
         ]);
 
         // Generate PDF for the invoice

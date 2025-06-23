@@ -1,12 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
-// use Maatwebsite\Excel\Facades\Excel;
-
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
-use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 
 class InvoiceGenerationController extends Controller
 {
-
     // Declare global properties
     protected $allCustomers;
     protected $allProducts;
@@ -38,20 +34,103 @@ class InvoiceGenerationController extends Controller
         $this->shuffleProducts();
     }
 
+    /**
+     * Get US public holidays for a given year
+     */
+    private function getUSHolidays($year)
+    {
+        $holidays = [];
+
+                                     // Fixed date holidays
+        $holidays[] = "$year-01-01"; // New Year's Day
+        $holidays[] = "$year-07-04"; // Independence Day
+        $holidays[] = "$year-11-11"; // Veterans Day
+        $holidays[] = "$year-12-25"; // Christmas Day
+
+        // Martin Luther King Jr. Day (3rd Monday in January)
+        $holidays[] = date('Y-m-d', strtotime("third monday of january $year"));
+
+        // Presidents Day (3rd Monday in February)
+        $holidays[] = date('Y-m-d', strtotime("third monday of february $year"));
+
+        // Memorial Day (last Monday in May)
+        $holidays[] = date('Y-m-d', strtotime("last monday of may $year"));
+
+        // Labor Day (1st Monday in September)
+        $holidays[] = date('Y-m-d', strtotime("first monday of september $year"));
+
+        // Columbus Day (2nd Monday in October)
+        $holidays[] = date('Y-m-d', strtotime("second monday of october $year"));
+
+        // Thanksgiving (4th Thursday in November)
+        $thanksgiving = date('Y-m-d', strtotime("fourth thursday of november $year"));
+        $holidays[]   = $thanksgiving;
+
+        // // Black Friday (day after Thanksgiving)
+        // $holidays[] = date('Y-m-d', strtotime($thanksgiving . ' +1 day'));
+
+        return $holidays;
+    }
+
+    /**
+     * Check if a date is a business day (not weekend or holiday)
+     */
+    private function isBusinessDay($date)
+    {
+        $timestamp = strtotime($date);
+        $dayOfWeek = date('w', $timestamp);
+
+        // Check if it's weekend (Saturday = 6, Sunday = 0)
+        if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+            return false;
+        }
+
+        // Check if it's a US holiday
+        $year     = date('Y', $timestamp);
+        $holidays = $this->getUSHolidays($year);
+
+        return ! in_array($date, $holidays);
+    }
+
+    /**
+     * Get all business days between two dates
+     */
+    private function getBusinessDays($startDate, $endDate)
+    {
+        $businessDays = [];
+        $current      = strtotime($startDate);
+        $end          = strtotime($endDate);
+
+        while ($current <= $end) {
+            $currentDate = date('Y-m-d', $current);
+            if ($this->isBusinessDay($currentDate)) {
+                $businessDays[] = $currentDate;
+            }
+            $current = strtotime('+1 day', $current);
+        }
+
+        return $businessDays;
+    }
+
+    /**
+     * Get the number of invoices to be generated based on total amount
+     */
+    public function getNoOfInvoiceToBeGenerated($totalAmount)
+    {
+        // You can adjust this logic based on your requirements
+        // For example: 1 invoice per $1000, minimum 10, maximum 1000
+        $invoicesCount = max(10, min(1000, intval($totalAmount / 1000)));
+        return $invoicesCount;
+    }
+
     public function showForm()
     {
-        // $pdf = Pdf::loadView('invoice_template_final2');
-        // return $pdf->stream('invoice-' . time() . '.pdf');
-
         $startInvoiceNumber = Invoice::select(DB::raw('CAST(invoice_number AS UNSIGNED) as invoice_number'))
             ->orderBy('invoice_number', 'desc')
             ->value('invoice_number');
 
         $startInvoiceNumber = $startInvoiceNumber ? $startInvoiceNumber + 1 : 1;
 
-        // return view('developer', [
-        //     'startInvoiceNumber' => $startInvoiceNumber
-        // ]);
         return view('invoices.generate', [
             'startInvoiceNumber' => $startInvoiceNumber,
         ]);
@@ -64,7 +143,6 @@ class InvoiceGenerationController extends Controller
 
         DB::beginTransaction();
         try {
-
             // Validate user input
             $validated = $request->validate([
                 'start_date'           => 'required|date',
@@ -78,57 +156,42 @@ class InvoiceGenerationController extends Controller
             $totalNumberOfInvoiceToBeGenerated = $request->num_invoices;
             $invoiceSequenceStartFrom          = $request->start_invoice_number;
 
-            // $invoices = $this->generateInvoiceData(
-            //     floatval($totalInvoiceAmount),
-            //     $totalNumberOfInvoiceToBeGenerated,
-            //     $invoiceSequenceStartFrom
-            // );
-
-            if (! request()->num_invoices) {
-                $totalNumberOfInvoiceToBeGenerated = $this->getNoOfInvoiceToBeGenerated(request()->total_amount);
+            if (! $request->num_invoices) {
+                $totalNumberOfInvoiceToBeGenerated = $this->getNoOfInvoiceToBeGenerated($request->total_amount);
             }
-            // if (empty(request()->num_invoices)) {
-            //     $invoices = $this->generateInvoiceDataV2(
-            //         floatval($totalInvoiceAmount),
-            //         $invoiceSequenceStartFrom
-            //     );
-            // } else {
+
             $invoices = $this->generateInvoiceData(
                 floatval($totalInvoiceAmount),
                 $totalNumberOfInvoiceToBeGenerated,
                 $invoiceSequenceStartFrom
             );
-            // }
+
             $invoices = $this->assignRandomTimesAscending($invoices);
 
             // Delete existing ZIP files in the directory
             $zipFiles         = public_path('*.zip');
             $existingZipFiles = File::glob($zipFiles);
             foreach ($existingZipFiles as $file) {
-                File::delete($file); // Delete each file
+                File::delete($file);
             }
 
-            Cache::put('start_invoice_number', request()->start_invoice_number + count($invoices));
+            Cache::put('start_invoice_number', $request->start_invoice_number + count($invoices));
 
             // Calculate the total amount of generated invoices
-            // $totalGeneratedAmount = str_replace(",", "", array_sum(array_column($invoices, 'total')));
-            $totalGeneratedAmount = array_sum(array_map('floatval', array_column($invoices, 'total')));
+            $totalGeneratedAmount = array_sum(array_column($invoices, 'total'));
 
-            if (request()->debug == 1) {
+            if ($request->debug == 1) {
                 return response()->json([
-                    array_combine(array_column($invoices, 'invoice_number'), array_column($invoices, 'invoice_date')),
-                    $totalGeneratedAmount,
+                    'invoices'        => array_combine(array_column($invoices, 'invoice_number'), array_column($invoices, 'invoice_date')),
+                    'total_generated' => $totalGeneratedAmount,
+                    'target_amount'   => $totalInvoiceAmount,
+                    'difference'      => $totalGeneratedAmount - $totalInvoiceAmount,
                 ]);
             }
+
             $this->storeInvoices($invoices);
             DB::commit();
             return $this->generateInvoicesZip($invoices, "invoice_total-$totalGeneratedAmount.zip");
-
-            $invoice = collect($invoices[0]);
-            // Pass data to the Blade view for PDF generation
-            $pdf = Pdf::loadView('invoice_template_final', compact('invoice'))->setPaper([0, 0, 612, 792], 'portrait');
-
-            return $pdf->stream('invoice-' . time() . '.pdf');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -162,13 +225,16 @@ class InvoiceGenerationController extends Controller
             $usedProducts[] = $product['product_name'];
 
             $unitPrice = floatval($product['unit_price']);
-            $quantity  = $isLastItem
-            ? max(1, min(4, ceil($remainingAmount / $unitPrice)))
-            : rand(1, 4);
 
-            // Adjust the quantity based on the unit price to ensure the total is at least $100
-            while ($unitPrice * $quantity < 100) {
-                $quantity++;
+            if ($isLastItem) {
+                // For the last item, calculate quantity to reach the target amount
+                $quantity = max(1, round($remainingAmount / $unitPrice, 2));
+            } else {
+                $quantity = rand(1, 4);
+                // Adjust the quantity based on the unit price to ensure reasonable amounts
+                while ($unitPrice * $quantity < 50 && $remainingAmount > 100) {
+                    $quantity++;
+                }
             }
 
             $amount = round($quantity * $unitPrice, 2);
@@ -177,11 +243,11 @@ class InvoiceGenerationController extends Controller
             $items[] = [
                 'name'           => $product['product_name'],
                 'description'    => $product['product_name'],
-                'quantity'       => number_format($quantity, 2, '.', ','),
-                'unit_price'     => number_format($unitPrice, 2, '.', ','),
-                'tax'            => number_format($tax, 2, '.', ','),
+                'quantity'       => $quantity,  // Store as float, format later if needed
+                'unit_price'     => $unitPrice, // Store as float, format later if needed
+                'tax'            => $tax,       // Store as float, format later if needed
                 'tax_percentage' => $taxPercentage,
-                'amount'         => number_format($amount, 2, '.', ','),
+                'amount'         => $amount, // Store as float, format later if needed
             ];
 
             $remainingAmount = max(0, $remainingAmount - $amount);
@@ -196,12 +262,12 @@ class InvoiceGenerationController extends Controller
         int $remainingCount
     ): float {
         if ($remainingCount <= 1) {
-            return round($remainingTotal, 2); // Last invoice takes the remaining amount
+            return round($remainingTotal, 2);
         }
 
-                                                      // Calculate bounds with safeguards
-        $minAmount = max(0.01, $averageAmount * 0.9); // Minimum cannot be less than 0.01
-        $maxAmount = min($averageAmount * 1.1, $remainingTotal - ($remainingCount - 1) * 0.01);
+                                                    // Calculate bounds with tighter control for better accuracy
+        $minAmount = max(50, $averageAmount * 0.7); // Minimum $50
+        $maxAmount = min($averageAmount * 1.3, $remainingTotal - ($remainingCount - 1) * 50);
 
         // Ensure $maxAmount is not less than $minAmount
         if ($maxAmount < $minAmount) {
@@ -221,92 +287,81 @@ class InvoiceGenerationController extends Controller
         $remainingAmount      = $totalInvoiceAmount;
         $averageInvoiceAmount = $totalInvoiceAmount / $totalNumberOfInvoiceToBeGenerated;
 
-        // Generate invoices with small variations to make the total amount close to the requested amount
-        for ($i = 0; $i < $totalNumberOfInvoiceToBeGenerated; $i++) {
-            $isLastInvoice = ($i == $totalNumberOfInvoiceToBeGenerated - 1);
+        // Get all business days in the date range
+        $businessDays = $this->getBusinessDays(request()->start_date, request()->end_date);
 
-            // Control the invoice amount deviation for all invoices except the last one
-            $currentInvoiceAmount = ($isLastInvoice)
-            ? $remainingAmount
-            : $this->generateRandomAmount($averageInvoiceAmount, $remainingAmount, $totalNumberOfInvoiceToBeGenerated - $i);
-
-            // Random customer and product for each invoice
-            $customer      = $this->getRandomCustomer();
-            $product       = $this->getRandomProduct();
-            $taxPercentage = request()->tax_percentage;
-
-            $invoiceItems = $this->generateInvoiceItems(
-                $currentInvoiceAmount,
-                $product['product_name'],
-                $product['product_name'],
-                floatval($product['unit_price']),
-                floatval($taxPercentage)
-            );
-
-            $subtotal = array_sum(array_map('floatval', array_column($invoiceItems, 'amount')));
-            $totalTax = array_sum(array_map('floatval', array_column($invoiceItems, 'tax')));
-
-            $invoices[] = [
-                 ...$customer,
-                'invoice_number' => $invoiceSequenceStartFrom + $i,
-                'invoice_date'   => $this->getRandomDate($totalNumberOfInvoiceToBeGenerated, $i),
-                'invoice_items'  => $invoiceItems,
-                'subtotal'       => number_format($subtotal, 2, '.', ','),
-                'total_tax'      => number_format($totalTax, 2, '.', ','),
-                'total'          => number_format(($subtotal + $totalTax), 2, '.', ','),
-            ];
-
-            // Update remaining amount
-            $remainingAmount -= $currentInvoiceAmount;
+        if (empty($businessDays)) {
+            throw new \Exception('No business days found in the specified date range.');
         }
 
-        return $invoices;
-    }
+        // Distribute invoices across business days
+        $invoicesPerDay     = [];
+        $totalBusinessDays  = count($businessDays);
+        $baseInvoicesPerDay = intval($totalNumberOfInvoiceToBeGenerated / $totalBusinessDays);
+        $extraInvoices      = $totalNumberOfInvoiceToBeGenerated % $totalBusinessDays;
 
-    private function generateInvoiceDataV2(
-        float $totalInvoiceAmount,
-        int $invoiceSequenceStartFrom
-    ): array {
-        $invoices             = [];
-        $remainingAmount      = $totalInvoiceAmount;
-        $totalGeneratedAmount = 0; // Track the total generated amount
+        // Distribute invoices evenly across business days
+        for ($i = 0; $i < $totalBusinessDays; $i++) {
+            $invoicesPerDay[$i] = $baseInvoicesPerDay;
+            if ($i < $extraInvoices) {
+                $invoicesPerDay[$i]++;
+            }
+        }
 
-        $i = 0;
-        while ($remainingAmount > 0) {
-            // Random customer and product for each invoice
-            $customer      = $this->getRandomCustomer();
-            $product       = $this->getRandomProduct();
-            $taxPercentage = request()->tax_percentage;
-            // Generate invoice items
-            $invoiceItems = $this->generateInvoiceItems(
-                $remainingAmount,
-                $product['product_name'],
-                $product['product_name'],
-                floatval($product['unit_price']),
-                floatval($taxPercentage)
-            );
+        $invoiceIndex = 0;
 
-            $subtotal = array_sum(array_map('floatval', array_column($invoiceItems, 'amount')));
-            $totalTax = array_sum(array_map('floatval', array_column($invoiceItems, 'tax')));
+        // Generate invoices for each business day
+        for ($dayIndex = 0; $dayIndex < $totalBusinessDays; $dayIndex++) {
+            $currentDate        = $businessDays[$dayIndex];
+            $invoicesForThisDay = $invoicesPerDay[$dayIndex];
 
-            // Calculate total for the current invoice
-            $currentInvoiceAmount = round($subtotal + $totalTax, 2);
+            for ($i = 0; $i < $invoicesForThisDay; $i++) {
+                $isLastInvoice = ($invoiceIndex == $totalNumberOfInvoiceToBeGenerated - 1);
 
-            // Update total generated amount and remaining amount
-            $totalGeneratedAmount += $currentInvoiceAmount;
-            $remainingAmount = max(0, $totalInvoiceAmount - $totalGeneratedAmount);
+                // Control the invoice amount deviation
+                $currentInvoiceAmount = $isLastInvoice
+                ? $remainingAmount
+                : $this->generateRandomAmount(
+                    $averageInvoiceAmount,
+                    $remainingAmount,
+                    $totalNumberOfInvoiceToBeGenerated - $invoiceIndex
+                );
 
-            // Add invoice to the list
-            $invoices[] = [
-                 ...$customer,
-                'invoice_number' => $invoiceSequenceStartFrom++,
-                'invoice_date'   => $this->getRandomDate($totalInvoiceAmount, $i),
-                'invoice_items'  => $invoiceItems,
-                'subtotal'       => number_format($subtotal, 2, '.', ','),
-                'total_tax'      => number_format($totalTax, 2, '.', ','),
-                'total'          => number_format(($subtotal + $totalTax), 2, '.', ','),
-            ];
-            $i++;
+                // Ensure minimum invoice amount
+                $currentInvoiceAmount = max(50, $currentInvoiceAmount);
+
+                // Random customer and product for each invoice
+                $customer      = $this->getRandomCustomer();
+                $product       = $this->getRandomProduct();
+                $taxPercentage = request()->tax_percentage ?? 0;
+
+                $invoiceItems = $this->generateInvoiceItems(
+                    $currentInvoiceAmount,
+                    $product['product_name'],
+                    $product['product_name'],
+                    floatval($product['unit_price']),
+                    floatval($taxPercentage)
+                );
+
+                // Now we can safely calculate totals since items store numeric values
+                $subtotal    = array_sum(array_column($invoiceItems, 'amount'));
+                $totalTax    = array_sum(array_column($invoiceItems, 'tax'));
+                $actualTotal = $subtotal + $totalTax;
+
+                $invoices[] = [
+                     ...$customer,
+                    'invoice_number' => $invoiceSequenceStartFrom + $invoiceIndex,
+                    'invoice_date'   => $currentDate,
+                    'invoice_items'  => $invoiceItems,
+                    'subtotal'       => $subtotal,    // Store as float
+                    'total_tax'      => $totalTax,    // Store as float
+                    'total'          => $actualTotal, // Store as float
+                ];
+
+                // Update remaining amount
+                $remainingAmount -= $actualTotal;
+                $invoiceIndex++;
+            }
         }
 
         return $invoices;
@@ -316,41 +371,16 @@ class InvoiceGenerationController extends Controller
         int $totalNumberOfInvoices,
         int $invoiceIndex
     ): ?string {
-        $startDate = strtotime(request()->start_date);
-        $endDate   = strtotime(request()->end_date);
+        // This method is now replaced by the business day distribution in generateInvoiceData
+        // Keeping it for backward compatibility
+        $businessDays = $this->getBusinessDays(request()->start_date, request()->end_date);
 
-        if (! $startDate || ! $endDate) {
+        if (empty($businessDays)) {
             return null;
         }
 
-        // Calculate the total number of days in the range
-        $totalDays = floor(($endDate - $startDate) / (60 * 60 * 24)) + 1;
-        if ($totalDays < 1) {
-            return null; // Invalid date range
-        }
-
-        // Calculate how many invoices should be assigned to each day
-        $invoicesPerDay    = intdiv($totalNumberOfInvoices, $totalDays);
-        $remainingInvoices = $totalNumberOfInvoices % $totalDays;
-
-        // Determine the index of the day this invoice should fall on
-        $dayIndex = intdiv($invoiceIndex, $invoicesPerDay);
-        if ($invoiceIndex % $invoicesPerDay < $remainingInvoices) {
-            $dayIndex++;
-        }
-
-        // Calculate the random date based on the index of the day
-        $randomDate = date('Y-m-d', strtotime("+$dayIndex days", $startDate));
-
-                                                         // Ensure the date does not fall on a Sunday
-        while (date('w', strtotime($randomDate)) == 0) { // 0 = Sunday
-            $randomDate = date('Y-m-d', strtotime('+1 day', strtotime($randomDate)));
-        }
-
-        if (strtotime($randomDate) > $endDate) {
-            $randomDate = date('Y-m-d', $endDate);
-        }
-        return $randomDate;
+        $randomIndex = $invoiceIndex % count($businessDays);
+        return $businessDays[$randomIndex];
     }
 
     /**
@@ -424,7 +454,6 @@ class InvoiceGenerationController extends Controller
         DB::beginTransaction();
 
         try {
-
             foreach ($invoices as $_invoices) {
                 // Create the invoice
                 $invoice = Invoice::create([
@@ -443,11 +472,11 @@ class InvoiceGenerationController extends Controller
                     $invoice->items()->create([
                         'name'           => $itemData['name'],
                         'description'    => $itemData['description'],
-                        'quantity'       => floatval(str_replace(",", "", $itemData['quantity'])),
-                        'unit_price'     => floatval(str_replace(",", "", $itemData['unit_price'])),
-                        'tax'            => floatval(str_replace(",", "", $itemData['tax'])),
-                        'tax_percentage' => floatval(str_replace(",", "", $itemData['tax_percentage'])),
-                        'amount'         => floatval(str_replace(",", "", $itemData['amount'])),
+                        'quantity'       => $itemData['quantity'],
+                        'unit_price'     => $itemData['unit_price'],
+                        'tax'            => $itemData['tax'],
+                        'tax_percentage' => $itemData['tax_percentage'],
+                        'amount'         => $itemData['amount'],
                     ]);
                 }
             }
@@ -466,8 +495,8 @@ class InvoiceGenerationController extends Controller
     protected function shuffleCustomers(): void
     {
         $this->shuffledCustomers = $this->allCustomers;
-        shuffle($this->shuffledCustomers); // Randomly shuffle the customers
-        $this->customerIndex = 0;          // Reset the index
+        shuffle($this->shuffledCustomers);
+        $this->customerIndex = 0;
     }
 
     /**
@@ -476,8 +505,8 @@ class InvoiceGenerationController extends Controller
     protected function shuffleProducts(): void
     {
         $this->shuffledProducts = $this->allProducts;
-        shuffle($this->shuffledProducts); // Randomly shuffle the products
-        $this->productIndex = 0;          // Reset the index
+        shuffle($this->shuffledProducts);
+        $this->productIndex = 0;
     }
 
     public function assignRandomTimesAscending(&$invoices, $startTime = "08:00", $endTime = "16:30")
@@ -486,28 +515,36 @@ class InvoiceGenerationController extends Controller
         $startTimestamp = strtotime($startTime);
         $endTimestamp   = strtotime($endTime);
 
-        // Ensure the array is sorted by invoice_number
+        // Group invoices by date
+        $invoicesByDate = [];
+        foreach ($invoices as $key => $invoice) {
+            $date = $invoice['invoice_date'];
+            if (! isset($invoicesByDate[$date])) {
+                $invoicesByDate[$date] = [];
+            }
+            $invoicesByDate[$date][] = $key;
+        }
+
+        // Assign times for each date separately
+        foreach ($invoicesByDate as $date => $invoiceKeys) {
+            $timeInterval = ($endTimestamp - $startTimestamp) / count($invoiceKeys);
+            $currentTime  = $startTimestamp;
+
+            foreach ($invoiceKeys as $key) {
+                $invoices[$key]['invoice_time'] = date("H:i", $currentTime);
+                $currentTime += $timeInterval + rand(60, 300); // Add 1-5 minutes random variation
+
+                // Ensure we don't exceed end time
+                if ($currentTime > $endTimestamp) {
+                    $currentTime = $endTimestamp - rand(300, 900); // 5-15 minutes before end
+                }
+            }
+        }
+
+        // Sort invoices by invoice_number
         usort($invoices, function ($a, $b) {
             return $a['invoice_number'] <=> $b['invoice_number'];
         });
-
-        $previousTime = $startTimestamp;
-
-        // Assign random times in ascending order
-        foreach ($invoices as &$invoice) {
-            // Ensure $previousTime does not exceed $endTimestamp
-            if ($previousTime >= $endTimestamp) {
-                $previousTime = $endTimestamp;
-            }
-
-            // // Generate a random time between $previousTime and $endTimestamp
-            // $randomTime = mt_rand($previousTime, $endTimestamp);
-
-            // Assign the time and update $previousTime
-            $invoice['invoice_time'] = date("H:i", $previousTime);
-            $previousTime            = ($previousTime + 600 + rand(1, 200)); // Increment by 1 minute to ensure next time is later
-                                                                             // Log::debug($invoice['invoice_number']." Date: ".$invoice['invoice_date']." Total: ".$invoice['total']);
-        }
 
         return $invoices;
     }
