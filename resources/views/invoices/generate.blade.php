@@ -38,7 +38,7 @@
                     </div>
 
                     <!-- Number of Invoices -->
-                    <div>
+                    <div class="hidden">
                         <label for="num_invoices" class="block text-sm font-medium text-gray-700">Number of Invoices</label>
                         <input type="number"
                             class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -46,7 +46,7 @@
                     </div>
 
                     <!-- Number of Client -->
-                    <div>
+                    <div class="hidden">
                         <label for="num_client" class="block text-sm font-medium text-gray-700">Number of Client</label>
                         <input type="number"
                             class="mt-1 block w-full border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
