@@ -47,7 +47,7 @@ abstract class Controller
 
                 if (in_array('single_pdf', request()->output_type ?? [])) {
                     // Generate PDF for the invoice
-                    $name    = "[{$invoice['invoice_number']}]_{$invoice['full_name']}_{$invoice['invoice_date']}";
+                    $name    = "[{$invoice['invoice_number']}]_{$invoice['first_name']}_{$invoice['invoice_date']}";
                     $pdf     = PDF::loadView('invoice_template_final', ['invoice' => $invoice]);
                     $pdfPath = "pdf_{$name}" . '.pdf';
 
