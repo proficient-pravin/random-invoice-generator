@@ -23,8 +23,10 @@
                 <h1 style="padding-left:5px; font-size: 32px; font-weight: normal;">INVOICE</h1>
                 <p style="margin-left: 25%; font-weight: normal; line-height: 1;">
                     <!-- A Team Electrical<br> -->
+                    @if(!empty($invoice['po_attention_to']) || !empty($invoice['first_name']) || !empty($invoice['last_name']))
                     Attention:
                     {{ $invoice['po_attention_to'] ?? ($invoice['first_name'] . ' ' . $invoice['last_name'] ?? 'N/A') }}<br>
+                    @endif
                     @if ($invoice['po_address_line1'])
                         {{ $invoice['po_address_line1'] }}<br>
                     @endif
